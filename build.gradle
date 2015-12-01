@@ -1,0 +1,165 @@
+apply plugin: 'java'
+apply plugin: 'jacoco'
+apply plugin: 'license'
+
+sourceCompatibility = 1.7
+group = "org.decimal4j"
+version = '1.0.1-SNAPSHOT'
+archivesBaseName = "decimal4j-float"
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'decimal4j-float', 'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+buildscript {
+	repositories {
+		mavenCentral()
+		jcenter()
+	}
+	
+	dependencies {
+		classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
+		classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
+	}
+}
+
+dependencies {
+    testCompile 'junit:junit:4.11'
+}
+
+test {
+	//supported system properties for test sets:
+	//
+	//-DtestVariant=TINY,SMALL,STANDARD,ALL
+	//-DtestCases=TINY,SMALL,STANDARD,ALL
+	//-DtestScales=TINY,SMALL,STANDARD,ALL
+    systemProperties = System.getProperties()
+}
+
+uploadArchives {
+    repositories {
+       flatDir {
+           dirs 'build/repositories'
+       }
+    }
+}
+
+task copyLicense(type: Copy) {
+    from('.')
+    into('build/resources/main/')
+    include('LICENSE.md')
+    rename('LICENSE.md', 'LICENSE.txt')
+}
+task copyLicenseToSrc(type: Copy) {
+    from('build/resources/main/')
+    into('build/generated-src/')
+    include('LICENSE.txt')
+}
+
+license {
+    header rootProject.file('src/main/resources/LICENSE.template')
+    strictCheck true
+	include "**/*.java"
+	ext.year = Calendar.getInstance().get(Calendar.YEAR)
+}
+compileJava.dependsOn licenseFormat
+copyLicense.dependsOn processResources
+copyLicenseToSrc.dependsOn copyLicense
+compileJava.dependsOn licenseFormat,copyLicense,copyLicenseToSrc
+
+javadoc {
+	options.showFromPackage()
+	options.linkSource()
+	options.links("http://docs.oracle.com/javase/8/docs/api/");
+	options.windowTitle = "decimal4j-float API ${version}"
+	options.overview = "src/main/java/overview.html";
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives jar
+    archives javadocJar
+    archives sourcesJar
+}
+
+if (project.hasProperty('upload')) {
+
+    allprojects {
+        apply plugin: 'signing'
+        apply plugin: 'maven'
+		apply plugin: 'io.codearte.nexus-staging'
+		
+        // Signature of artifacts
+        signing {
+            sign configurations.archives
+        }
+
+        // OSSRH publication
+        uploadArchives {
+            repositories {
+            	mavenDeployer {
+            		beforeDeployment { 
+            			MavenDeployment deployment -> signing.signPom(deployment)
+            		}
+            		repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+            			authentication(userName: ossrhUsername, password: ossrhPassword)
+            		}
+            		snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+            			authentication(userName: ossrhUsername, password: ossrhPassword)
+            		}
+            		
+            		pom.project {
+						name 'decimal4j-float'
+						packaging 'jar'
+						// optionally artifactId can be defined here 
+						description 'Java library for fast decimal floating point arithmetic.'
+						url 'https://github.com/tools4j/decimal4j-float'
+
+        				scm {
+        					connection 'scm:git:git@github.com:tools4j/decimal4j-float.git'
+        					developerConnection 'scm:git:git@github.com:tools4j/decimal4j-float.git'
+        					url 'git@github.com:tools4j/decimal4j-float.git'
+        				}
+        				licenses {
+        					license {
+        						name 'MIT License'
+        						url 'http://opensource.org/licenses/MIT'
+        					}
+        				}
+        				
+        				developers {
+        					developer {
+        						id 'terzerm'
+        						name 'Marco Terzer'
+        					}
+        				}
+        			}
+        			// remove jmh scope dependencies showing as compile time dependency
+        			pom.whenConfigured { pom ->
+        				pom.dependencies = pom.dependencies.findAll { dep -> dep.groupId != 'org.openjdk.jmh' }
+        			}
+        		}
+            }
+        }
+
+		nexusStaging {
+		    username = ossrhUsername
+		    password = ossrhPassword
+		}
+    }
+}
