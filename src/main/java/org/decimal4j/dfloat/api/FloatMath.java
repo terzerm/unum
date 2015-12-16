@@ -21,36 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.decimal4j.dfloat.encode;
+package org.decimal4j.dfloat.api;
 
-public class DpdFunctions {
-	public static final int min(final int from, final int to, final Encoding encoding) {
-		int min = Integer.MAX_VALUE;
-		for (int i = from; i < to; i++) {
-			min = Math.min(min, encoding.encode(i));
-		}
-		return min;
+public final class FloatMath {
+	
+	public static long add(final long a, final long b) {
+		return 0;//FIXME
 	}
-	public static final int max(final int from, final int to, final Encoding encoding) {
-		int max = Integer.MIN_VALUE;
-		for (int i = from; i < to; i++) {
-			max = Math.max(max, encoding.encode(i));
-		}
-		return max;
+	
+	
+	private FloatMath() {
+		throw new RuntimeException("no FloatMath for you!");
 	}
-	public static final Encoding invert(final int from, final int to, final Encoding encoding) {
-		final int min = min(from, to, encoding);
-		final int max = max(from, to, encoding);
-		final int[] mapping = new int[max - min + 1];
-		for (int i = from; i < to; i++) {
-			mapping[encoding.encode(i) - min] = i;
-		}
-		return new Encoding() {
-			@Override
-			public int encode(int value) {
-				return mapping[value - min];
-			}
-		};
-	}
-
 }

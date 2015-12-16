@@ -21,7 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.decimal4j.dfloat.encode;
+package org.decimal4j.dfloat.encode.other;
+
+import org.decimal4j.dfloat.encode.Encoding;
 
 /**
  * Densely packed digital encoding.
@@ -34,8 +36,8 @@ public class DpdGates {
 	
 	public static final Encoding ENCODING = new Encoding() {
 		@Override
-		public int encode(int value) {
-			return intToDpd(value);
+		public long encode(long value) {
+			return intToDpd((int)value);
 		}
 	};
 

@@ -23,6 +23,6 @@
  */
 package org.decimal4j.dfloat.encode;
 
-public interface Encoding {
-	long encode(long value);
+public class DFloat {
+	
 }

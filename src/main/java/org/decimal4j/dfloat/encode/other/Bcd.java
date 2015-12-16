@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.decimal4j.dfloat.encode;
+package org.decimal4j.dfloat.encode.other;
 
 /**
  * Binary coded decimal using 4 bits to encode a single decimal digit.

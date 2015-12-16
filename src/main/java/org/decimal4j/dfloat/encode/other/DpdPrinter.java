@@ -21,7 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.decimal4j.dfloat.encode;
+package org.decimal4j.dfloat.encode.other;
+
+import static org.decimal4j.dfloat.encode.other.DpdFunctions.invert;
+import static org.decimal4j.dfloat.encode.other.DpdFunctions.max;
+import static org.decimal4j.dfloat.encode.other.DpdFunctions.min;
+
+import org.decimal4j.dfloat.encode.Dpd;
+import org.decimal4j.dfloat.encode.Encoding;
 
 /**
  * Densely packed digital encoding.
@@ -30,19 +37,21 @@ public class DpdPrinter {
 	
 	public static void main(String[] args) {
 //		printArray(0, 1000, DpdGates.ENCODING);
-//		printArray(0, 1000, DpdLookup.ENCODING);
-//		printArray(0, 1000, DpdFunctions.invert(0, 1000, DpdGates.ENCODING));
-		printArray(0, 1000, DpdFunctions.invert(0, 1000, DpdLookup.ENCODING));
+//		printArray(0, 1000, Dpd.ENCODING);
+		printArray(0, 1024, invert(0, 1000, DpdGates.ENCODING));
+		printArray(0, 1024, DpdFunctions.invert(0, 1000, Dpd.ENCODING));
 //		printWikiSample(DpdGates.ENCODING);
-//		printWikiSample(DpdLookup.ENCODING);
+//		printWikiSample(Dpd.ENCODING);
 	}
 	
 	
-	public static void printArray(final int from, final int to, final Encoding encoding) {
-		for (int i = from; i < to; i++) {
+	public static void printArray(final long from, final long to, final Encoding encoding) {
+		final long factor = 1;
+		//final long factor = 1000000000000L;
+		for (long i = from; i < to; i++) {
 			System.out.print(i == from ? '{' : ',');
-//			System.out.print(encoding.encode(i));
-			System.out.print("\"" + ((encoding.encode(i)/100)%10) + ((encoding.encode(i)/10)%10) + ((encoding.encode(i)/1)%10) + "\"");
+			System.out.print(encoding.encode(i));
+//			System.out.print("\"" + ((encoding.encode(i)/100)%10) + ((encoding.encode(i)/10)%10) + ((encoding.encode(i)/1)%10) + "\"");
 		}
 		System.out.println('}');
 	}
@@ -60,7 +69,7 @@ public class DpdPrinter {
 	}
 	
 	public static void printBinary(final int value, final Encoding encoding) {
-		final String encoded = Integer.toBinaryString(encoding.encode(value));
-		System.out.println(value + ":\t" + "0000000000".substring(encoded.length()) + encoded);
+		final String encoded = Long.toBinaryString(encoding.encode(value));
+		System.out.println(value + ":\t" + "00000000000000000000000000000000000000000000000000".substring(encoded.length()) + encoded);
 	}
 }
