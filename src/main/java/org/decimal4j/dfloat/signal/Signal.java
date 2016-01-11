@@ -21,9 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/**
- * Contains the {@link org.decimal4j.dfloat.api.FloatArithmetic } interface and other 
- * central elements defining the <b>decimal4j</b> API for 64 bit floating point decimal 
- * numbers.
- */
-package org.decimal4j.dfloat.api;
+package org.decimal4j.dfloat.signal;
+
+import org.decimal4j.dfloat.encode.Decimal64;
+
+public class Signal {
+
+    public static final long INVALID_OPERATION = Decimal64.NAN | 0x1;
+    public static final long DIVISION_BY_ZERO = Decimal64.NAN | 0x2;
+    public static final long OVERFLOW = Decimal64.NAN | 0x4;
+    public static final long UNDERFLOW = Decimal64.NAN | 0x8;
+    public static final long INEXACT = Decimal64.NAN | 0x10;
+
+    public static final long invalidOperation() {
+        return Decimal64.NAN | INVALID_OPERATION;
+    }
+
+    public static final long divisionByZero() {
+        return Decimal64.NAN | DIVISION_BY_ZERO;
+    }
+
+    private Signal() {
+        throw new IllegalStateException("No Signal for you!");
+    }
+}

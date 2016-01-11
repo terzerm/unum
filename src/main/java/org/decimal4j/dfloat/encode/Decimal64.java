@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2015 decimal4j (tools4j), Marco Terzer
+ * Copyright (c) 2016 decimal4j (tools4j), Marco Terzer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,12 @@ public class Decimal64 {
 	public static final long SNAN = 0x7e00000000000000L; /* 0 11111 10 ... sNaN */
 	public static final long INF = 0x7800000000000000L; /* 0 11110 00 ... Infinity */
 	
+	public static final long SIGN_BIT_MASK = 0x8000000000000000L; /* 1 00000 00 ... sign bit */
+	
 	public static final long ZERO = 0x2238000000000000L;
+
+	public static final long COEFF_CONT_MASK = 0x0003ffffffffffffL;
+	private static final long EXP_CONT_MASK =  0x03fc000000000000L;
 
 	// @formatter:off
 	/* ------------------------------------------------------------------ */
@@ -87,6 +92,7 @@ public class Decimal64 {
 	private static final int[] DECCOMBMSD_E6 = Dpd.initIntMultiple(DECCOMBMSD, 1000000);
 	private static final long[] DECCOMBMSD_E16 = Dpd.initLongMultiple(DECCOMBMSD, 1000000000000000L);
 
+	/** DECCOMBFROM is indexed by expTopTwoBits*16 + msd */
 	private static final long[] DECCOMBFROM = {
 			  0x0000000000000000L, 0x0400000000000000L, 0x0800000000000000L, 0x0C00000000000000L, 0x1000000000000000L, 0x1400000000000000L,
 			  0x1800000000000000L, 0x1C00000000000000L, 0x6000000000000000L, 0x6400000000000000L, 0x0000000000000000L, 0x0000000000000000L,
@@ -107,17 +113,45 @@ public class Decimal64 {
 		return (dFloat & 0x1c03ffffffffffffL) == 0 & (dFloat & 0x6000000000000000L) != 0x6000000000000000L;
 	}
 
+	public static final boolean isNaN(final long dFloat) {
+		return (dFloat & NAN) == NAN;
+	}
+
+	public static final boolean isQuietNaN(final long dFloat) {
+		return (dFloat & SNAN) == NAN;
+	}
+
+	public static final boolean isSignalingNaN(final long dFloat) {
+		return (dFloat & SNAN) == SNAN;
+	}
+
+	public static final boolean isInfinite(final long dFloat) {
+		return (dFloat & NAN) == INF;
+	}
+
+	public static final boolean isPositiveInfinity(final long dFloat) {
+		return (dFloat & (NAN | SIGN_BIT_MASK)) == INF;
+	}
+
+	public static final boolean isNegativeInfinity(final long dFloat) {
+		return (dFloat & (NAN | SIGN_BIT_MASK)) == (INF | SIGN_BIT_MASK);
+	}
+
+	public static final boolean isFinite(final long dFloat) {
+		return (dFloat & NAN) < INF;
+	}
+
 	/**
 	 * test for coefficient continuation being zero
 	 * @param dFloat
 	 * @return true if zero
 	 */
 	public static final boolean isCoeffContZero(final long dFloat) {
-		return (dFloat & 0x0003ffffffffffffL) == 0;
+		return (dFloat & COEFF_CONT_MASK) == 0;
 	}
 	
 	public static final int getExponentContinuation(final long dFloat) {
-		return (int)((dFloat & 0x03ffffff00000000L) >>> (32-6-DECECONL));
+		return (int)((dFloat & EXP_CONT_MASK) >>> 50);
 	}
 	
 	public static final int getCombinationMSD(final long dFloat) {
@@ -125,11 +159,16 @@ public class Decimal64 {
 	}
 
 	public static final int getExponentBiased(final long dFloat) {
-		return DECCOMBEXP[(int)(dFloat >>> (26+32))] + getExponentContinuation(dFloat);
+		return DECCOMBEXP[(int)(dFloat >>> (26 + 32))] + getExponentContinuation(dFloat);
 	}
 
 	public static final int getExponent(final long dFloat) {
 		return getExponentBiased(dFloat) - EXPONENT_BIAS;
+	}
+
+	public static final long encode(final long sign, final int exp, final int msd, final long dpd) {
+		final int expBiased = exp + EXPONENT_BIAS;
+		return (sign & SIGN_BIT_MASK) | DECCOMBFROM[(expBiased >>> 4) + msd] | ((expBiased << 50) & EXP_CONT_MASK) | (dpd & COEFF_CONT_MASK);
 	}
 
 	/* Macros and masks for the exponent continuation field and MSD   */
@@ -152,12 +191,12 @@ public class Decimal64 {
 
 
 	/* Returns the most significant digit of the mantissa*/
-	private static final int getMantissaMSD(final long dpd) {
+	private static final int getMantissaBitsMSD(final long dpd) {
 		return (int)(dpd >>> (26+32));
 	}
 
 	public static long getMantissaAsLong(final long dpd) {
-		return DECCOMBMSD_E16[getMantissaMSD(dpd)] + Dpd.dpdToLong(dpd);
+		return DECCOMBMSD_E16[getMantissaBitsMSD(dpd)] + Dpd.dpdToLong(dpd);
 	}
 
 	public static int getMantissaAsLongLowBits(final long dpd) {
@@ -165,7 +204,7 @@ public class Decimal64 {
 	}
 
 	public static int getMantissaAsLongHighBits(final long dpd) {
-		return DECCOMBMSD_E6[getMantissaMSD(dpd)] + Dpd.dpdToSignificandHi(dpd);
+		return DECCOMBMSD_E6[getMantissaBitsMSD(dpd)] + Dpd.dpdToSignificandHi(dpd);
 	}
 
 	private Decimal64() {
