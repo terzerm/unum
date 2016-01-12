@@ -25,84 +25,84 @@ package org.decimal4j.dfloat.api;
 
 import org.decimal4j.dfloat.encode.Decimal64;
 import org.decimal4j.dfloat.encode.Dpd;
+import org.decimal4j.dfloat.ops.Add;
+import org.decimal4j.dfloat.ops.Sign;
 import org.decimal4j.dfloat.signal.Signal;
 
 public final class FloatMath {
 
 	public static long copySign(final long a, final long b) {
-		return copySignToPositive(clearSign(a), b);
+		return Sign.copySign(a, b);
 	}
-	private static long clearSign(final long a) {
-		return a & (~Decimal64.SIGN_BIT_MASK);
+	public static long abs(final long a) {
+		return Sign.clearSign(a);
 	}
-	private static long copySignToPositive(final long a, final long b) {
-		return a | (b & Decimal64.SIGN_BIT_MASK);
+	public static long negate(final long a) {
+		return Sign.flipSign(a);
 	}
 	public static long add(final long a, final long b) {
-		if (Decimal64.isFinite(a) & Decimal64.isFinite(b)) {
-			return addFinite(a, b);
-		}
-		//at least one is NaN or Infinite
-		if (Decimal64.isNaN(a)) {
-			return copySignToPositive(Decimal64.NAN | Dpd.canonicalize(a), a);
-		}
-		if (Decimal64.isNaN(b)) {
-			return copySignToPositive(Decimal64.NAN | Dpd.canonicalize(b), b);
-		}
-		//at least one Infinite
-		if (Decimal64.isInfinite(a)) {
-			if (Decimal64.isInfinite(b)) {
-				return (a ^ b) < 0 ? Signal.invalidOperation() : copySignToPositive(Decimal64.INF, a);
-			}
-			return copySignToPositive(Decimal64.INF, a);
-		}
-		return copySignToPositive(Decimal64.INF, b);
+		return Add.add(a, b);
 	}
 
 	public static long subtract(final long a, final long b) {
-		return add(a, b ^ Decimal64.SIGN_BIT_MASK);
+		return add(a, Sign.flipSign(b));
 	}
 
-	private static final long addFinite(final long a, final long b) {
-		final int expA = Decimal64.getExponent(a);
-		final int expB = Decimal64.getExponent(b);
-		if (expA == expB) {
-			if ((a ^ b) >= 0) {
-				final long sum10to50 = Dpd.add(a, b);
-				final int sumMSD = Decimal64.getCombinationMSD(a) + Decimal64.getCombinationMSD(b) + (int) (sum10to50 >>> 51);
-				if (sumMSD <= 9) {
-					return Decimal64.encode(a & Decimal64.SIGN_BIT_MASK, expA, sumMSD, sum10to50);
-				}
-				//mantissa overflow
-				return Decimal64.encode(a & Decimal64.SIGN_BIT_MASK, expA, sumMSD, sum10to50);
-			} else {
-				//one is negative, subtract larger from smaller (absolute values)
-				final long msbA = Decimal64.getCombinationMSD(a);
-				final long msbB = Decimal64.getCombinationMSD(b);
-				long cmp = Long.compare(msbA, msbB);
-				if (cmp == 0) {
-					cmp = Dpd.compare(a, b);
-				}
-				final long sub10to50;
-				final int subMSD;
-				final long sign;
-				if (cmp >= 0) {
-					//a >= b
-					sign = a & Decimal64.SIGN_BIT_MASK;
-					sub10to50 = Dpd.sub(a, b);
-					subMSD = Decimal64.getCombinationMSD(a) - Decimal64.getCombinationMSD(b) - (int) (sub10to50 >>> 51);
-				} else {
-					//a < b
-					sign = b & Decimal64.SIGN_BIT_MASK;
-					sub10to50 = Dpd.sub(b, a);
-					subMSD = Decimal64.getCombinationMSD(b) - Decimal64.getCombinationMSD(a) - (int) (sub10to50 >>> 51);
-				}
-				return Decimal64.encode(sign, expA, subMSD, sub10to50);
-			}
-		}
-		else return Decimal64.NAN;//FIXME
+	public static boolean isInfinite(final long a) {
+		return Decimal64.isInfinite(a);
 	}
 
+	public static boolean isFinite(final long a) {
+		return Decimal64.isFinite(a);
+	}
+
+	public static final boolean isNormal(final long a) {
+		return Decimal64.isNormal(a);
+	}
+
+	public static final boolean isSubnormal(final long a) {
+		return Decimal64.isSubnormal(a);
+	}
+
+	public static final boolean isCanonical(final long a) {
+		return Decimal64.isCanonical(a);
+	}
+
+	public static boolean isZero(final long a) {
+		return Decimal64.isZero(a);
+	}
+
+	public static boolean isPositive(final long a) {
+		return !isNaN(a) & !isSignMinus(a) & !isZero(a);
+	}
+
+	public static boolean isNegative(final long a) {
+		return !isNaN(a) & isSignMinus(a) & !isZero(a);
+	}
+
+	public static double signum(final long a) {
+		return Sign.signum(a);
+	}
+
+	public static boolean isSignMinus(final long a) {
+		return Sign.isSignMinus(a);
+	}
+
+	public static boolean isNaN(final long a) {
+		return Decimal64.isNaN(a);
+	}
+
+	public static boolean isSignalingNaN(final long a) {
+		return Decimal64.isSignalingNaN(a);
+	}
+
+	public static boolean isQuietNaN(final long a) {
+		return Decimal64.isQuietNaN(a);
+	}
+
+	public static ValueClass classFor(final long a) {
+		return ValueClass.classFor(a);
+	}
 
 	private FloatMath() {
 		throw new RuntimeException("No FloatMath for you!");

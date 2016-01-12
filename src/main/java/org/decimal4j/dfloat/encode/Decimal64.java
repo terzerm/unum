@@ -141,9 +141,21 @@ public class Decimal64 {
 		return (dFloat & NAN) < INF;
 	}
 
+	public static final boolean isNormal(final long dFloat) {
+		return true;//FIXME
+	}
+
+	public static final boolean isSubnormal(final long dFloat) {
+		return true;//FIXME
+	}
+
+	public static final boolean isCanonical(final long dFloat) {
+		return true;//FIXME
+	}
+
 	/**
 	 * test for coefficient continuation being zero
-	 * @param dFloat
+	 * @param dFloat the decimal float value in DPD encoding
 	 * @return true if zero
 	 */
 	public static final boolean isCoeffContZero(final long dFloat) {
@@ -210,5 +222,6 @@ public class Decimal64 {
 	private Decimal64() {
 		throw new RuntimeException("no Decimal64 for you!");
 	}
+
 
 }

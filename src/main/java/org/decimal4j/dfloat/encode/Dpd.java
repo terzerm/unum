@@ -45,6 +45,8 @@ public class Dpd {
 	private static final int[] DPD_TO_INT_30 = initIntMultiple(DPD_TO_INT_10, 1000000);
 	private static final long[] DPD_TO_INT_40 = initLongMultiple(DPD_TO_INT_10, 1000000000);
 	private static final long[] DPD_TO_INT_50 = initLongMultiple(DPD_TO_INT_10, 1000000000000L);
+	private static final int[] DPD_TO_INT_NLZ = nlz(DPD_TO_INT_10);
+	private static final int[] DPD_TO_INT_NTZ = ntz(DPD_TO_INT_10);
 	private static final int[] DPD_TO_INT_RSHIFT_1 = initIntShift(DPD_TO_INT_10, -1);
 	private static final int[] DPD_TO_INT_RSHIFT_2 = initIntShift(DPD_TO_INT_10, -2);
 	private static final int[] DPD_TO_INT_LSHIFT_1 = initIntShift(DPD_TO_INT_10, 1);
@@ -205,7 +207,8 @@ public class Dpd {
 									   final int n) {
 		if (n == 1) {
 			return shiftRight(dpd50, dpd40, dpd30, dpd20, dpd10);
-		} else if (n == 2) {
+		}
+		if (n == 2) {
 			return shiftRight2(dpd50, dpd40, dpd30, dpd20, dpd10);
 		}
 		return dpd10 | (dpd20 << 10) | (dpd30 << 20) | (dpd40 << 30) | dpd50;
@@ -217,30 +220,23 @@ public class Dpd {
 		final int dpd30 = (int)((dpd >>> 20) & 0x3ff);
 		final int dpd40 = (int)((dpd >>> 30) & 0x3ff);
 		final int dpd50 = (int)((dpd >>> 40) & 0x3ff);
-		if (n >= 3) {
-			if (n >= 6) {
-				if (n >= 9) {
-					if (n >= 12) {
-						if (n >= 15) {
-							return 0;
-						}
-						//12..15
-						return shiftRight0to2(0, 0, 0, 0, dpd50, n-12);
-					} else {
-						//9..12
-						return shiftRight0to2(0, 0, 0, dpd50, dpd40, n-9);
-					}
-				} else {
-					//6..9
-					return shiftRight0to2(0, 0, dpd50, dpd40, dpd30, n-6);
-				}
-			} else {
-				//3..6
-				return shiftRight0to2(0, dpd50, dpd40, dpd30, dpd20, n-3);
+		//binary search, optimized for small n
+		if (n < 6) {
+			if (n < 3) {
+				return shiftRight0to2(dpd50, dpd40, dpd30, dpd20, dpd10, n);
 			}
-		} else {
-			return shiftRight0to2(dpd50, dpd40, dpd30, dpd20, dpd10, n);
+			return shiftRight0to2(0, dpd50, dpd40, dpd30, dpd20, n-3);
 		}
+		if (n < 12) {
+			if (n < 9) {
+				return shiftRight0to2(0, 0, dpd50, dpd40, dpd30, n - 6);
+			}
+			return shiftRight0to2(0, 0, 0, dpd50, dpd40, n-9);
+		}
+		if (n < 15) {
+			return shiftRight0to2(0, 0, 0, 0, dpd50, n-12);
+		}
+		return 0;
 	}
 
 	public static int subDeclet(final int dpdA, final int dpdB, int carry) {
@@ -249,7 +245,6 @@ public class Dpd {
 	}
 
 	public static long sub(final long dpdA, final long dpdB) {
-		//@formatter:off
 		final int sub10 = subDeclet((int)(dpdA & 0x3ff), (int)(dpdB & 0x3ff), 0);
 		final int sub20 = subDeclet((int)((dpdA >>> 10) & 0x3ff), (int)((dpdB >> 10) & 0x3ff), sub10 >>> 11);
 		final int sub30 = subDeclet((int)((dpdA >>> 20) & 0x3ff), (int)((dpdB >> 20) & 0x3ff), sub20 >>> 11);
@@ -261,7 +256,6 @@ public class Dpd {
 				((sub40 & 0x3ff) << 30) |
 				((sub50 & 0x3ff) << 40) |
 				((sub40 & 0x400) << 51);
-		//@formatter:on
 	}
 
 	public static int compareDeclet(final int dpdA, final int dpdB) {
@@ -278,6 +272,37 @@ public class Dpd {
 		cmp = compareDeclet((int)((dpdA >>> 10) & 0x3ff), (int)((dpdB >>> 10) & 0x3ff));
 		if (cmp != 0) return cmp;
 		return compareDeclet((int)(dpdA & 0x3ff), (int)(dpdB & 0x3ff));
+	}
+
+	public static int numberOfLeadingZerosDeclet(final int dpd) {
+		return DPD_TO_INT_NLZ[dpd];
+	}
+	public static int numberOfLeadingZeros(final long dpd) {
+		int nlz;
+		nlz = numberOfLeadingZerosDeclet((int)((dpd >>> 40) & 0x3ff));
+		if (nlz < 3) return nlz;
+		nlz = numberOfLeadingZerosDeclet((int)((dpd >>> 30) & 0x3ff));
+		if (nlz < 3) return nlz+3;
+		nlz = numberOfLeadingZerosDeclet((int)((dpd >>> 20) & 0x3ff));
+		if (nlz < 3) return nlz+6;
+		nlz = numberOfLeadingZerosDeclet((int)((dpd >>> 10) & 0x3ff));
+		if (nlz < 3) return nlz+9;
+		return numberOfLeadingZerosDeclet((int)(dpd & 0x3ff)) + 12;
+	}
+	public static int numberOfTrailingZerosDeclet(final int dpd) {
+		return DPD_TO_INT_NTZ[dpd];
+	}
+	public static int numberOfTrailingZeros(final long dpd) {
+		int ntz;
+		ntz = numberOfTrailingZerosDeclet((int)(dpd & 0x3ff));
+		if (ntz < 3) return ntz;
+		ntz = numberOfTrailingZerosDeclet((int)((dpd >>> 10) & 0x3ff));
+		if (ntz < 3) return ntz+3;
+		ntz = numberOfTrailingZerosDeclet((int)((dpd >>> 20) & 0x3ff));
+		if (ntz < 3) return ntz+6;
+		ntz = numberOfTrailingZerosDeclet((int)((dpd >>> 30) & 0x3ff));
+		if (ntz < 3) return ntz+9;
+		return numberOfTrailingZerosDeclet((int)((dpd >>> 40) & 0x3ff)) + 12;
 	}
 
 	/**
@@ -491,6 +516,25 @@ public class Dpd {
 			shifted[i] = shiftedValue;
 		}
 		return shifted;
+	}
+	private static int[] nlz(final int[] values) {
+		final int[] nlz = new int[values.length];
+		for (int i = 0; i < nlz.length; i++) {
+			final int val = values[i];
+			if (val == 0) nlz[i] = 3;
+			else if (val < 10) nlz[i] = 2;
+			else if (val < 100) nlz[i] = 1;
+		}
+		return nlz;
+	}
+	private static int[] ntz(final int[] values) {
+		final int[] ntz = new int[values.length];
+		for (int i = 0; i < ntz.length; i++) {
+			final int val = values[i];
+			if (val == 0) ntz[i] = 3;
+			else if ((val % 10) == 0) ntz[i] = ((val % 100) == 0) ? 2 : 1;
+		}
+		return ntz;
 	}
 
 	public static void main(String[] args) {
