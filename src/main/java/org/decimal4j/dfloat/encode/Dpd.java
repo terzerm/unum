@@ -131,13 +131,11 @@ public class Dpd {
 	}
 
 	public static long canonicalize(final long dpd) {
-		//@formatter:off
 		return canonicalizeDeclet((int) (dpd & 0x3ff)) |
 				(canonicalizeDeclet((int) ((dpd >>> 10) & 0x3ff)) << 10) |
 				(canonicalizeDeclet((int) ((dpd >>> 20) & 0x3ff)) << 20) |
 				(canonicalizeDeclet((int) ((dpd >>> 30) & 0x3ff)) << 30) |
 				(canonicalizeDeclet((int) ((dpd >>> 40) & 0x3ff)) << 40);
-		//@formatter:on
 	}
 
 	public static int addDeclet(final int dpdA, final int dpdB, int carry) {
@@ -146,25 +144,58 @@ public class Dpd {
 	}
 
 	public static long add(final long dpdA, final long dpdB) {
-		//@formatter:off
 		final int sum10 = addDeclet((int)(dpdA & 0x3ff), (int)(dpdB & 0x3ff), 0);
 		final int sum20 = addDeclet((int)((dpdA >>> 10) & 0x3ff), (int)((dpdB >> 10) & 0x3ff), sum10 >>> 11);
 		final int sum30 = addDeclet((int)((dpdA >>> 20) & 0x3ff), (int)((dpdB >> 20) & 0x3ff), sum20 >>> 11);
 		final int sum40 = addDeclet((int)((dpdA >>> 30) & 0x3ff), (int)((dpdB >> 30) & 0x3ff), sum30 >>> 11);
 		final int sum50 = addDeclet((int)((dpdA >>> 40) & 0x3ff), (int)((dpdB >> 40) & 0x3ff), sum40 >>> 11);
-		return (sum10 & 0x3ff) |
-				((sum20 & 0x3ff) << 10) |
-				((sum30 & 0x3ff) << 20) |
-				((sum40 & 0x3ff) << 30) |
-				((sum50 & 0x3ff) << 40) |
-				((sum40 & 0x400) << 51);
-		//@formatter:on
+		return (sum10 & 0x3ffL) |
+				((sum20 & 0x3ffL) << 10) |
+				((sum30 & 0x3ffL) << 20) |
+				((sum40 & 0x3ffL) << 30) |
+				((sum50 & 0x3ffL) << 40) |
+				((sum50 & 0x400L) << 51);
+	}
+
+	public static int incDeclet(final int dpd, int carry) {
+		final int sum = DPD_TO_INT_10[dpd] + 1 + carry;
+		return sum < 1000 ? INT_TO_DPD[sum] : (1<<11) | INT_TO_DPD[sum-1000];
+	}
+
+	public static long inc(final long dpd) {
+		final int sum10 = incDeclet((int)(dpd & 0x3ff), 0);
+		final int car10 = sum10 >>> 11;
+		if (car10 == 0) {
+			return (dpd & 0x0003fffffffffc00L) | (sum10 & 0x3ff);
+		}
+		final int sum20 = incDeclet((int)((dpd >>> 10) & 0x3ff), car10);
+		final int car20 = sum20 >>> 11;
+		if (car20 == 0) {
+			return (dpd & 0x0003fffffff00000L) | ((sum20 & 0x3ff) << 10) | (sum10 & 0x3ff);
+		}
+		final int sum30 = incDeclet((int)((dpd >>> 20) & 0x3ff), car20);
+		final int car30 = sum30 >>> 11;
+		if (car30 == 0) {
+			return (dpd & 0x0003ffffc0000000L) | ((sum30 & 0x3ff) << 20) | ((sum20 & 0x3ff) << 10) | (sum10 & 0x3ff);
+		}
+		final int sum40 = incDeclet((int)((dpd >>> 30) & 0x3ff), car30);
+		final int car40 = sum40 >>> 11;
+		if (car40 == 0) {
+			return (dpd & 0x0003ff0000000000L) | ((sum40 & 0x3ff) << 30) | ((sum30 & 0x3ff) << 20) | ((sum20 & 0x3ff) << 10) | (sum10 & 0x3ff);
+		}
+		final int sum50 = incDeclet((int)((dpd >>> 40) & 0x3ff), car40);
+		return (sum10 & 0x3ffL) |
+				((sum20 & 0x3ffL) << 10) |
+				((sum30 & 0x3ffL) << 20) |
+				((sum40 & 0x3ffL) << 30) |
+				((sum50 & 0x3ffL) << 40) |
+				((sum50 & 0x400L) << 51);
 	}
 
 	public static int shiftRightDeclet(final int dpdHi, final int dpdLo) {
 		return INT_TO_DPD[DPD_TO_INT_LSHIFT_2[dpdHi] + DPD_TO_INT_RSHIFT_1[dpdLo]];
 	}
-	private static long shiftRight(final long dpd) {
+	public static long shiftRight(final long dpd) {
 		return shiftRight(
 				(int)((dpd >>> 40) & 0x3ff),
 				(int)((dpd >>> 30) & 0x3ff),
@@ -183,7 +214,7 @@ public class Dpd {
 	public static int shiftRight2Declet(final int dpdHi, final int dpdLo) {
 		return INT_TO_DPD[DPD_TO_INT_LSHIFT_1[dpdHi] + DPD_TO_INT_RSHIFT_2[dpdLo]];
 	}
-	private static long shiftRight2(final long dpd) {
+	public static long shiftRight2(final long dpd) {
 		return shiftRight2(
 				(int)((dpd >>> 40) & 0x3ff),
 				(int)((dpd >>> 30) & 0x3ff),
@@ -250,12 +281,12 @@ public class Dpd {
 		final int sub30 = subDeclet((int)((dpdA >>> 20) & 0x3ff), (int)((dpdB >> 20) & 0x3ff), sub20 >>> 11);
 		final int sub40 = subDeclet((int)((dpdA >>> 30) & 0x3ff), (int)((dpdB >> 30) & 0x3ff), sub30 >>> 11);
 		final int sub50 = subDeclet((int)((dpdA >>> 40) & 0x3ff), (int)((dpdB >> 40) & 0x3ff), sub40 >>> 11);
-		return (sub10 & 0x3ff) |
-				((sub20 & 0x3ff) << 10) |
-				((sub30 & 0x3ff) << 20) |
-				((sub40 & 0x3ff) << 30) |
-				((sub50 & 0x3ff) << 40) |
-				((sub40 & 0x400) << 51);
+		return (sub10 & 0x3ffL) |
+				((sub20 & 0x3ffL) << 10) |
+				((sub30 & 0x3ffL) << 20) |
+				((sub40 & 0x3ffL) << 30) |
+				((sub50 & 0x3ffL) << 40) |
+				((sub50 & 0x400L) << 51);
 	}
 
 	public static int compareDeclet(final int dpdA, final int dpdB) {
@@ -303,6 +334,10 @@ public class Dpd {
 		ntz = numberOfTrailingZerosDeclet((int)((dpd >>> 30) & 0x3ff));
 		if (ntz < 3) return ntz+9;
 		return numberOfTrailingZerosDeclet((int)((dpd >>> 40) & 0x3ff)) + 12;
+	}
+
+	public static int mod10(final long dpd) {
+		return dpdToCharDigit0((int)(dpd & 0x3ff)) - '0';
 	}
 
 	/**
@@ -381,11 +416,9 @@ public class Dpd {
 	 * @return the int value between 0 and 999,999,999.
 	 */
 	public static int dpdToSignificandLo(final long dpd) {
-		//@formatter:off
-		return DPD_TO_INT_10[(int) (dpd & 0x3ff)] + 
+		return DPD_TO_INT_10[(int) (dpd & 0x3ff)] +
 				DPD_TO_INT_20[(int) ((dpd >>> 10) & 0x3ff)] + 
 				DPD_TO_INT_30[(int) ((dpd >>> 20) & 0x3ff)]; 
-		//@formatter:on
 	}
 
 	/**
@@ -396,10 +429,8 @@ public class Dpd {
 	 * @return the int value between 0 and 999,999.
 	 */
 	public static int dpdToSignificandHi(final long dpd) {
-		//@formatter:off
-		return DPD_TO_INT_10[(int) ((dpd >>> 30) & 0x3ff)] + 
+		return DPD_TO_INT_10[(int) ((dpd >>> 30) & 0x3ff)] +
 				DPD_TO_INT_20[(int) ((dpd >>> 40) & 0x3ff)];
-		//@formatter:on
 	}
 
 	/**

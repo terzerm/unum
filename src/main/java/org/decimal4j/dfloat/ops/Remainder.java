@@ -23,38 +23,30 @@
  */
 package org.decimal4j.dfloat.ops;
 
-import org.decimal4j.dfloat.encode.Decimal64;
+public enum Remainder {
+    ZERO,
+    GREATER_THAN_ZERO_BUT_LESS_THAN_HALF,
+    EQUAL_TO_HALF,
+    GREATER_THAN_HALF;
 
-import static org.decimal4j.dfloat.encode.Decimal64.isNaN;
-import static org.decimal4j.dfloat.encode.Decimal64.isZero;
-
-public final class Sign {
-    /**
-     * Copy the sign of b into a.
-     *
-     * @param a number to return with sign of b
-     * @param b sign to copy into a
-     * @return a with sign of b
-     */
-    public static long copySign(final long a, final long b) {
-        return copySignToPositive(clearSign(a), b);
+    public final boolean isZero() {
+        return this == ZERO;
     }
-    public static long clearSign(final long a) {
-        return a & (~Decimal64.SIGN_BIT_MASK);
+    public final boolean isGreaterThanZero() {
+        return this != ZERO;
     }
-    public static long flipSign(final long a) {
-        return a ^ Decimal64.SIGN_BIT_MASK;
+    public final boolean isLessThanHalf() {
+        return this == ZERO | this == GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
     }
-    public static boolean isSignMinus(final long a) {
-        return a < 0;
+    public final boolean isEqualToHalf() {
+        return this == EQUAL_TO_HALF;
     }
-    public static double signum(final long a) {
-        return isNaN(a) ? Double.NaN : sign(a);
+    public final boolean isGreaterThanHalf() {
+        return this == GREATER_THAN_HALF;
     }
-    public static int sign(final long a) {
-        return isZero(a) ? 0 : isSignMinus(a) ? -1 : 1;
-    }
-    static long copySignToPositive(final long a, final long b) {
-        return a | (b & Decimal64.SIGN_BIT_MASK);
+    public static final Remainder ofDigit(final int digit) {
+        if (digit > 5) return GREATER_THAN_HALF;
+        if (digit < 5) return digit > 0 ? GREATER_THAN_ZERO_BUT_LESS_THAN_HALF : ZERO;
+        return EQUAL_TO_HALF;
     }
 }
