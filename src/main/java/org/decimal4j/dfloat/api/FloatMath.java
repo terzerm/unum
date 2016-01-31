@@ -31,6 +31,17 @@ import org.decimal4j.dfloat.signal.Signal;
 
 public final class FloatMath {
 
+	public static final long ZERO = Decimal64.ZERO;
+	public static final long MIN_NORMAL = 0;//FIXME
+	public static final long MAX_NORMAL = 0;//FIXME
+
+	/**
+	 * Copy the sign of b into a.
+	 *
+	 * @param a number to return with sign of b
+	 * @param b sign to copy into a
+	 * @return a with sign of b
+	 */
 	public static long copySign(final long a, final long b) {
 		return Sign.copySign(a, b);
 	}

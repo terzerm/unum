@@ -23,25 +23,47 @@
  */
 package org.decimal4j.dfloat.signal;
 
+import org.decimal4j.dfloat.attribute.*;
 import org.decimal4j.dfloat.encode.Decimal64;
 
 public class Signal {
 
-    public static final long INVALID_OPERATION = Decimal64.NAN | 0x1;
-    public static final long DIVISION_BY_ZERO = Decimal64.NAN | 0x2;
-    public static final long OVERFLOW = Decimal64.NAN | 0x4;
-    public static final long UNDERFLOW = Decimal64.NAN | 0x8;
-    public static final long INEXACT = Decimal64.NAN | 0x10;
-
-    public static final long invalidOperation() {
-        return Decimal64.NAN | INVALID_OPERATION;
+    public static final long invalidOperation(final String operation,
+                                              final long a, final long b, final long result,
+                                              final Attributes attributes) {
+        return signal(operation, a, b, result, Flag.InvalidOperation, null, attributes);
     }
 
-    public static final long divisionByZero() {
-        return Decimal64.NAN | DIVISION_BY_ZERO;
+    public static final long divisionByZero(final String operation,
+                                            final long a, final long b, final long result,
+                                            final Attributes attributes) {
+        return signal(operation, a, b, result, Flag.DivisionByZero, null, attributes);
     }
 
     private Signal() {
-        throw new IllegalStateException("No Signal for you!");
+        throw new IllegalStateException("No Flag for you!");
+    }
+
+    private static final long signal(final String operation,
+                                     final long a, final long b, final long result,
+                                     final Flag flag, final Flag otherFlag,
+                                     final Attributes attributes) {
+        final Flag raisedFlag, raisedOtherFlag;
+        raisedFlag = raiseFlag(flag, attributes.getFlagMode(flag));
+        if (otherFlag != null) {
+            raisedOtherFlag = raiseFlag(otherFlag, attributes.getFlagMode(flag));
+        } else {
+            raisedOtherFlag = null;
+        }
+        if (raisedFlag != null) {
+            return attributes.getExceptionHandler().handleException(operation, a, b, result, raisedFlag, raisedOtherFlag, attributes);
+        }
+        if (raisedOtherFlag != null) {
+            return attributes.getExceptionHandler().handleException(operation, a, b, result, raisedOtherFlag, null, attributes);
+        }
+        return result;
+    }
+    private static final Flag raiseFlag(final Flag flag, final FlagMode flagMode) {
+        return flagMode == FlagMode.RaiseNoFlag ? null : flag;
     }
 }

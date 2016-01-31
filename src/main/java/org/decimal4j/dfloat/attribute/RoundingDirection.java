@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.decimal4j.dfloat.api;
+package org.decimal4j.dfloat.attribute;
 
 import org.decimal4j.dfloat.ops.Remainder;
 
@@ -29,17 +29,17 @@ import java.math.RoundingMode;
 
 /**
  * IEEE 754-2008 rounding directions.
- * <p>
+ *
  * Except where stated otherwise, every operation is performed as if it first produced an intermediate
  * result correct to infinite precision and with unbounded range, and then rounded that result according to
  * one of the rounding direction constants.
- * <p>
+ *
  * The rounding-direction affects all computational operations that might be inexact. Inexact numeric
  * floating-point results always have the same sign as the unrounded result. The rounding-direction affects
  * the signs of exact zero sums, and also affects the thresholds beyond which overflow and underflow are
  * signaled.
  */
-public enum RoundingDirection {
+public enum RoundingDirection implements Attributes {
     /**
      * The floating-point number nearest to the infinitely precise result is returned; if the two nearest
      * floating-point numbers bracketing an unrepresentable infinitely precise result are equally near, the
@@ -47,8 +47,12 @@ public enum RoundingDirection {
      */
     NearestTiesToEven {
         @Override
-        public final int getRoundingIncrement(final int signum, final int leastSignificantDigit, final Remainder remainder) {
+        public final int getRoundingIncrement(final long signumValue, final int leastSignificantDigit, final Remainder remainder) {
             return remainder.isLessThanHalf() ? 0 : remainder.isGreaterThanHalf() ? 1 : leastSignificantDigit & 0x1;
+        }
+        @Override
+        public final boolean isRoundingIncrementPossible(long signumValue) {
+            return true;
         }
     },
     /**
@@ -58,8 +62,12 @@ public enum RoundingDirection {
      */
     NearestTiesToAway {
         @Override
-        public final int getRoundingIncrement(final int signum, final int leastSignificantDigit, final Remainder remainder) {
+        public final int getRoundingIncrement(final long signumValue, final int leastSignificantDigit, final Remainder remainder) {
             return remainder.isLessThanHalf() ? 0 : 1;
+        }
+        @Override
+        public final boolean isRoundingIncrementPossible(long signumValue) {
+            return true;
         }
     },
     /**
@@ -68,8 +76,12 @@ public enum RoundingDirection {
      */
     TowardPositive {
         @Override
-        public final int getRoundingIncrement(final int signum, final int leastSignificantDigit, final Remainder remainder) {
-            return signum >= 0 & remainder.isGreaterThanZero() ? 1 : 0;
+        public final int getRoundingIncrement(final long signumValue, final int leastSignificantDigit, final Remainder remainder) {
+            return signumValue >= 0 & remainder.isGreaterThanZero() ? 1 : 0;
+        }
+        @Override
+        public final boolean isRoundingIncrementPossible(long signumValue) {
+            return signumValue >= 0;
         }
     },
     /**
@@ -78,8 +90,12 @@ public enum RoundingDirection {
      */
     TowardNegative {
         @Override
-        public final int getRoundingIncrement(final int signum, final int leastSignificantDigit, final Remainder remainder) {
-            return signum <= 0 & remainder.isGreaterThanZero() ? 1 : 0;
+        public final int getRoundingIncrement(final long signumValue, final int leastSignificantDigit, final Remainder remainder) {
+            return signumValue <= 0 & remainder.isGreaterThanZero() ? 1 : 0;
+        }
+        @Override
+        public final boolean isRoundingIncrementPossible(long signumValue) {
+            return signumValue <= 0;
         }
     },
     /**
@@ -88,8 +104,12 @@ public enum RoundingDirection {
      */
     TowardZero {
         @Override
-        public final int getRoundingIncrement(final int signum, final int leastSignificantDigit, final Remainder remainder) {
+        public final int getRoundingIncrement(final long signumValue, final int leastSignificantDigit, final Remainder remainder) {
             return 0;
+        }
+        @Override
+        public final boolean isRoundingIncrementPossible(long signumValue) {
+            return false;
         }
     };
 
@@ -123,14 +143,47 @@ public enum RoundingDirection {
         }
     }
 
+    @Override
+    public final RoundingDirection getBinaryRoundingDirection() {
+        return this;
+    }
+
+    @Override
+    public final RoundingDirection getDecimalRoundingDirection() {
+        return this;
+    }
+
+    @Override
+    public SignalMode getSignalMode() {
+        return SignalMode.DEFAULT;
+    }
+
+    @Override
+    public FlagMode getFlagMode(Flag flag) {
+        return FlagMode.DEFAULT;
+    }
+
+    @Override
+    public ExceptionHandler getExceptionHandler() {
+        return ExceptionHandler.DEFAULT;
+    }
+
     /**
-     * Returns the rounding increment zero or one given the signum, least significant digit and truncated
+     * Returns the rounding increment zero or one given the signum value, least significant digit and truncated
      * remainder of the result.
      *
-     * @param signum                the signum of the result, -1, 0 or 1
+     * @param signumValue           the signum value of the result, negative, zero or positive
      * @param leastSignificantDigit the least significant digit of the truncated result, 0-9
      * @param remainder             the truncated part
      * @return the rounding increment, 0 or 1, to add to the unsigned result
      */
-    abstract public int getRoundingIncrement(int signum, final int leastSignificantDigit, final Remainder remainder);
+    abstract public int getRoundingIncrement(long signumValue, final int leastSignificantDigit, final Remainder remainder);
+
+    /**
+     * Returns true if a rounding increment is possible given only the signum value of the result.
+     *
+     * @param signumValue           the signum value of the result, negative, zero or positive
+     * @return true if rounding increment 1 is possible with the given signumValue, and false if it is always 0
+     */
+    abstract public boolean isRoundingIncrementPossible(long signumValue);
 }

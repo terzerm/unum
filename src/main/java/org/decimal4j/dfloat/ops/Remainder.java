@@ -45,8 +45,42 @@ public enum Remainder {
         return this == GREATER_THAN_HALF;
     }
     public static final Remainder ofDigit(final int digit) {
+        if (digit == 0) return ZERO;
         if (digit > 5) return GREATER_THAN_HALF;
-        if (digit < 5) return digit > 0 ? GREATER_THAN_ZERO_BUT_LESS_THAN_HALF : ZERO;
+        if (digit < 5) return GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
         return EQUAL_TO_HALF;
     }
+    public static final Remainder ofPow10(final long remainder, final int n) {
+        if (remainder == 0) return ZERO;
+        if (n < POW10_HALF.length) {
+            final long pow10half = POW10_HALF[n];
+            if (remainder > pow10half) return GREATER_THAN_HALF;
+            if (remainder < pow10half) return GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
+            return EQUAL_TO_HALF;
+        }
+        return GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
+    }
+
+    private static final long[] POW10_HALF = {
+            0,
+            5,
+            50,
+            500,
+            5000,
+            50000,
+            500000,
+            5000000,
+            50000000,
+            500000000,
+            5000000000L,
+            50000000000L,
+            500000000000L,
+            5000000000000L,
+            50000000000000L,
+            500000000000000L,
+            5000000000000000L,
+            50000000000000000L,
+            500000000000000000L,
+            5000000000000000000L
+    };
 }

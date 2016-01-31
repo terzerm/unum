@@ -23,15 +23,16 @@
  */
 package org.decimal4j.dfloat.ops;
 
-import org.decimal4j.dfloat.api.RoundingDirection;
+import org.decimal4j.dfloat.attribute.RoundingDirection;
 import org.decimal4j.dfloat.encode.Decimal64;
 import org.decimal4j.dfloat.encode.Dpd;
 import org.decimal4j.dfloat.signal.Signal;
 
-import static org.decimal4j.dfloat.ops.Sign.copySign;
 import static org.decimal4j.dfloat.ops.Sign.copySignToPositive;
 
 public final class Add {
+
+    private static final String OPERATION = "add";
 
     public static long add(long a, long b) {
         if (Decimal64.isFinite(a) & Decimal64.isFinite(b)) {
@@ -47,7 +48,10 @@ public final class Add {
         //at least one Infinite
         if (Decimal64.isInfinite(a)) {
             if (Decimal64.isInfinite(b)) {
-                return (a ^ b) < 0 ? Signal.invalidOperation() : copySignToPositive(Decimal64.INF, a);
+                if ((a ^ b) < 0) {
+                    return Signal.invalidOperation(OPERATION, a, b, Decimal64.NAN, RoundingDirection.DEFAULT);
+                }
+                return copySignToPositive(Decimal64.INF, a);
             }
             return copySignToPositive(Decimal64.INF, a);
         }
@@ -55,53 +59,138 @@ public final class Add {
 
     }
     private static final long addFinite(final long a, final long b, final RoundingDirection roundingDirection) {
+        final int msdA = Decimal64.getCombinationMSD(a);
+        final int msdB = Decimal64.getCombinationMSD(b);
         final int expA = Decimal64.getExponent(a);
         final int expB = Decimal64.getExponent(b);
         if (expA == expB) {
-            if ((a ^ b) >= 0) {
-                //a and b have same sign
-                final long sum10to50 = Dpd.add(a, b);
-                final int sumMSD = Decimal64.getCombinationMSD(a) + Decimal64.getCombinationMSD(b) + (int) (sum10to50 >>> 51);
-                if (sumMSD <= 9) {
-                    return Decimal64.encode(a & Decimal64.SIGN_BIT_MASK, expA, sumMSD, sum10to50);
-                }
-                //mantissa overflow
-                if (expA < Decimal64.MAX_EXPONENT) {
-                    final long shifted = Dpd.shiftRight(sum10to50);
-                    final int mod10 = Dpd.mod10(sum10to50);
-                    final int lsd10 = Dpd.mod10(shifted);
-                    final Remainder remainder = Remainder.ofDigit(mod10);
-                    final int inc = roundingDirection.getRoundingIncrement(Sign.sign(a), lsd10, remainder);
-                    final long rounded = inc > 0 ? Dpd.inc(shifted) : shifted;//cannot overflow
-                    return Decimal64.encode(a & Decimal64.SIGN_BIT_MASK, expA + 1, sumMSD - 10, rounded);
-                }
-                //exponent overflow ==> Infinity
-                return Sign.copySign(Decimal64.INF, a);
-            } else {
-                //exactly one is negative, subtract smaller from larger magnitude
-                final long msbA = Decimal64.getCombinationMSD(a);
-                final long msbB = Decimal64.getCombinationMSD(b);
-                long cmp = Long.compare(msbA, msbB);
-                if (cmp == 0) {
-                    cmp = Dpd.compare(a, b);
-                }
-                final long sub10to50;
-                final int subMSD;
-                final long sign;
-                if (cmp >= 0) {
-                    //a >= b
-                    sign = a & Decimal64.SIGN_BIT_MASK;
-                    sub10to50 = Dpd.sub(a, b);
-                    subMSD = Decimal64.getCombinationMSD(a) - Decimal64.getCombinationMSD(b) - (int) (sub10to50 >>> 51);
-                } else {
-                    //a < b
-                    sign = b & Decimal64.SIGN_BIT_MASK;
-                    sub10to50 = Dpd.sub(b, a);
-                    subMSD = Decimal64.getCombinationMSD(b) - Decimal64.getCombinationMSD(a) - (int) (sub10to50 >>> 51);
-                }
-                return Decimal64.encode(sign, expA, subMSD, sub10to50);
-            }
+            return addFiniteSameExponent(msdA, a, msdB, b, expA, roundingDirection);
         }
-        else return Decimal64.NAN;//FIXME
+        if (expA > expB) {
+            return addFiniteDifferentExponent(msdA, a, expA, msdB, b, expB, roundingDirection);
+        } else {
+            return addFiniteDifferentExponent(msdB, b, expB, msdA, a, expA, roundingDirection);
+        }
+    }
+
+    private static long addFiniteSameExponent(final int msdA, final long a,
+                                              final int msdB, final long b,
+                                              final int exp, final RoundingDirection roundingDirection) {
+        if ((a ^ b) >= 0) {
+            //a and b have same sign
+            return addFiniteSameExponentAndSign(msdA, a, msdB, b, exp, roundingDirection);
+        }
+        //exactly one is negative
+        if (compareMantissa(msdA, a, msdB, b) >= 0) {
+            return addFiniteSameExponentOppositeSign(msdA, a, msdB, b, exp);
+        } else {
+            return addFiniteSameExponentOppositeSign(msdB, b, msdA, a, exp);
+        }
+    }
+
+    private static long addFiniteSameExponentAndSign(final int msdA, final long a,
+                                                     final int msdB, final long b,
+                                                     final int exp, final RoundingDirection roundingDirection) {
+        final long sum10to50 = Dpd.add(a, b);
+        final int sumMSD = msdA + msdB + (int) (sum10to50 >>> 51);
+        if (sumMSD <= 9) {
+            return Decimal64.encode(a & Decimal64.SIGN_BIT_MASK, exp, sumMSD, sum10to50);
+        }
+        //mantissa overflow
+        if (exp < Decimal64.MAX_EXPONENT) {
+            final long shifted = Dpd.shiftRight(sum10to50);
+            final long sign = a & Decimal64.SIGN_BIT_MASK;
+            if (roundingDirection.isRoundingIncrementPossible(sign)) {
+                final int mod10 = Dpd.mod10(sum10to50);
+                final int lsd10 = Dpd.mod10(shifted);
+                final Remainder remainder = Remainder.ofDigit(mod10);
+                final int inc = roundingDirection.getRoundingIncrement(sign, lsd10, remainder);
+                if (inc > 0) {
+                    return Decimal64.encode(sign, exp + 1, sumMSD - 10, Dpd.inc(shifted));//inc cannot overflow
+                }
+            }
+            return Decimal64.encode(sign, exp + 1, sumMSD - 10, shifted);
+        }
+        //exponent overflow ==> Infinity
+        return Sign.copySign(Decimal64.INF, a);
+    }
+
+    //PRECONDITION: |a| >= |b|
+    private static long addFiniteSameExponentOppositeSign(final int msdA, final long a, final int msdB, final long b, final int exp) {
+        final long sign = a & Decimal64.SIGN_BIT_MASK;
+        final long sub10to50 = Dpd.sub(a, b);
+        final int subMSD = msdA - msdB - (int) (sub10to50 >>> 51);
+        return Decimal64.encode(sign, exp, subMSD, sub10to50);
+    }
+
+    private static int compareMantissa(final int msdA, final long a, final int msdB, final long b) {
+        final int cmp = Long.compare(msdA, msdB);
+        return cmp != 0 ? cmp : Dpd.compare(a, b);
+    }
+
+    //PRECONDITION: expA > expB
+    private static long addFiniteDifferentExponent(final int msdA, final long a, final int expA, final int msdB, final long b, final int expB, final RoundingDirection roundingDirection) {
+        final int expDiff = expA - expB;
+        if (expDiff < 16) {
+            //mantissa have some overlap: | a | a/b | b |
+            final long bShifted = Dpd.shiftRight(msdB, b, expDiff);
+            final long bModPow10 = Dpd.modPow10(b, expDiff);
+            final long dpdS = Dpd.add(a, bShifted);
+            final long s = dpdS & Decimal64.COEFF_CONT_MASK;
+            final long msdS = msdA + (int)(dpdS >>> 51);
+
+            return Decimal64.NAN;//FIXME
+        } else {
+            //mantissa have no overlap:   | a | ... | b |
+            //--> result = a + round(b)
+            final long s;
+            final int msdS, expS, expD, modS;
+            final int nlzA = msdA == 0 ? 0 : Dpd.numberOfLeadingZeros(a);
+            if (nlzA > 0) {
+                //we can shift somewhat to the left to approach preferred exponent expB
+                if (nlzA == 15) {
+                    //a must be zero, return b
+                    return Decimal64.encode(b & Decimal64.SIGN_BIT_MASK, expB, msdB, b);
+                }
+                final int shift = Math.min(nlzA, expDiff);
+                final long shifted = Dpd.shiftLeft(a, shift);
+                s = shift & Decimal64.COEFF_CONT_MASK;
+                msdS = (int)(shifted >>> 51);
+                expS = expA - shift;
+                expD = expDiff - shift;
+                modS = 0;
+            } else {
+                s = a;
+                msdS = msdA;
+                expS = expA;
+                expD = expDiff;
+                modS = Dpd.mod10(s);
+            }
+            final long sign = a & Decimal64.SIGN_BIT_MASK;
+            if (roundingDirection.isRoundingIncrementPossible(sign)) {
+                final Remainder remainder = expD > 16 | msdB < 5 ? Remainder.GREATER_THAN_ZERO_BUT_LESS_THAN_HALF : msdB > 5 | (msdB == 5 & b != 0) ? Remainder.GREATER_THAN_HALF : Remainder.EQUAL_TO_HALF;
+                final int inc = roundingDirection.getRoundingIncrement(sign, modS, remainder);
+                if (inc > 0) {
+                    final long incremented = Dpd.inc(s);
+                    final long rounded = incremented & Decimal64.COEFF_CONT_MASK;
+                    final int msd = msdS + (int)(incremented >>> 51);
+                    if (msd <= 9) {
+                        return Decimal64.encode(sign, expS, msd, rounded);
+                    }
+                    //mantissa overflow
+                    if (expS < Decimal64.MAX_EXPONENT) {
+                        return Decimal64.encode(sign, expS + 1, msd - 10, rounded);
+                    }
+                    //exponent overflow ==> Infinity
+                    return Sign.copySign(Decimal64.INF, a);
+                }
+            }
+            return Decimal64.encode(sign, expA, msdA, a);
+        }
+    }
+
+    private static final int numberOfTrailingZeros(final int msd, final long dpd) {
+        final int ntz = Dpd.numberOfTrailingZeros(dpd);
+        return ntz < 15 ? ntz : msd == 0 ? 16 : 15;
     }
 }

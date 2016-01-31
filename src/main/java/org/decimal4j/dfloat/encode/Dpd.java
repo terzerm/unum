@@ -36,7 +36,6 @@ public class Dpd {
 		throw new RuntimeException("no Dpd for you!");
 	}
 
-	// @formatter:off
 	/** 3 decimal digits, 1000 values */
 	private static final int[] INT_TO_DPD = {0,1,2,3,4,5,6,7,8,9,16,17,18,19,20,21,22,23,24,25,32,33,34,35,36,37,38,39,40,41,48,49,50,51,52,53,54,55,56,57,64,65,66,67,68,69,70,71,72,73,80,81,82,83,84,85,86,87,88,89,96,97,98,99,100,101,102,103,104,105,112,113,114,115,116,117,118,119,120,121,10,11,42,43,74,75,106,107,78,79,26,27,58,59,90,91,122,123,94,95,128,129,130,131,132,133,134,135,136,137,144,145,146,147,148,149,150,151,152,153,160,161,162,163,164,165,166,167,168,169,176,177,178,179,180,181,182,183,184,185,192,193,194,195,196,197,198,199,200,201,208,209,210,211,212,213,214,215,216,217,224,225,226,227,228,229,230,231,232,233,240,241,242,243,244,245,246,247,248,249,138,139,170,171,202,203,234,235,206,207,154,155,186,187,218,219,250,251,222,223,256,257,258,259,260,261,262,263,264,265,272,273,274,275,276,277,278,279,280,281,288,289,290,291,292,293,294,295,296,297,304,305,306,307,308,309,310,311,312,313,320,321,322,323,324,325,326,327,328,329,336,337,338,339,340,341,342,343,344,345,352,353,354,355,356,357,358,359,360,361,368,369,370,371,372,373,374,375,376,377,266,267,298,299,330,331,362,363,334,335,282,283,314,315,346,347,378,379,350,351,384,385,386,387,388,389,390,391,392,393,400,401,402,403,404,405,406,407,408,409,416,417,418,419,420,421,422,423,424,425,432,433,434,435,436,437,438,439,440,441,448,449,450,451,452,453,454,455,456,457,464,465,466,467,468,469,470,471,472,473,480,481,482,483,484,485,486,487,488,489,496,497,498,499,500,501,502,503,504,505,394,395,426,427,458,459,490,491,462,463,410,411,442,443,474,475,506,507,478,479,512,513,514,515,516,517,518,519,520,521,528,529,530,531,532,533,534,535,536,537,544,545,546,547,548,549,550,551,552,553,560,561,562,563,564,565,566,567,568,569,576,577,578,579,580,581,582,583,584,585,592,593,594,595,596,597,598,599,600,601,608,609,610,611,612,613,614,615,616,617,624,625,626,627,628,629,630,631,632,633,522,523,554,555,586,587,618,619,590,591,538,539,570,571,602,603,634,635,606,607,640,641,642,643,644,645,646,647,648,649,656,657,658,659,660,661,662,663,664,665,672,673,674,675,676,677,678,679,680,681,688,689,690,691,692,693,694,695,696,697,704,705,706,707,708,709,710,711,712,713,720,721,722,723,724,725,726,727,728,729,736,737,738,739,740,741,742,743,744,745,752,753,754,755,756,757,758,759,760,761,650,651,682,683,714,715,746,747,718,719,666,667,698,699,730,731,762,763,734,735,768,769,770,771,772,773,774,775,776,777,784,785,786,787,788,789,790,791,792,793,800,801,802,803,804,805,806,807,808,809,816,817,818,819,820,821,822,823,824,825,832,833,834,835,836,837,838,839,840,841,848,849,850,851,852,853,854,855,856,857,864,865,866,867,868,869,870,871,872,873,880,881,882,883,884,885,886,887,888,889,778,779,810,811,842,843,874,875,846,847,794,795,826,827,858,859,890,891,862,863,896,897,898,899,900,901,902,903,904,905,912,913,914,915,916,917,918,919,920,921,928,929,930,931,932,933,934,935,936,937,944,945,946,947,948,949,950,951,952,953,960,961,962,963,964,965,966,967,968,969,976,977,978,979,980,981,982,983,984,985,992,993,994,995,996,997,998,999,1000,1001,1008,1009,1010,1011,1012,1013,1014,1015,1016,1017,906,907,938,939,970,971,1002,1003,974,975,922,923,954,955,986,987,1018,1019,990,991,12,13,268,269,524,525,780,781,46,47,28,29,284,285,540,541,796,797,62,63,44,45,300,301,556,557,812,813,302,303,60,61,316,317,572,573,828,829,318,319,76,77,332,333,588,589,844,845,558,559,92,93,348,349,604,605,860,861,574,575,108,109,364,365,620,621,876,877,814,815,124,125,380,381,636,637,892,893,830,831,14,15,270,271,526,527,782,783,110,111,30,31,286,287,542,543,798,799,126,127,140,141,396,397,652,653,908,909,174,175,156,157,412,413,668,669,924,925,190,191,172,173,428,429,684,685,940,941,430,431,188,189,444,445,700,701,956,957,446,447,204,205,460,461,716,717,972,973,686,687,220,221,476,477,732,733,988,989,702,703,236,237,492,493,748,749,1004,1005,942,943,252,253,508,509,764,765,1020,1021,958,959,142,143,398,399,654,655,910,911,238,239,158,159,414,415,670,671,926,927,254,255};
 	/** 10 bits, 1024 values */
@@ -73,7 +72,6 @@ public class Dpd {
 	};
 	private static final int[] DIGIT_INDEX_SHIFT = {0, 0, 0, 10, 10, 10, 20, 20, 20, 30, 30, 30, 40, 40, 40};
 	private static final char[][] DIGIT_INDEX_DIGITS = {DPD_TO_DIGIT_0, DPD_TO_DIGIT_1, DPD_TO_DIGIT_2, DPD_TO_DIGIT_0, DPD_TO_DIGIT_1, DPD_TO_DIGIT_2, DPD_TO_DIGIT_0, DPD_TO_DIGIT_1, DPD_TO_DIGIT_2, DPD_TO_DIGIT_0, DPD_TO_DIGIT_1, DPD_TO_DIGIT_2, DPD_TO_DIGIT_0, DPD_TO_DIGIT_1, DPD_TO_DIGIT_2};
-	// @formatter:on
 	private static final ThreadLocal<StringBuilder> STRING_BUILDER_LOCAL = new ThreadLocal<StringBuilder>() {
 		protected StringBuilder initialValue() {
 			return new StringBuilder(15);
@@ -192,60 +190,66 @@ public class Dpd {
 				((sum50 & 0x400L) << 51);
 	}
 
-	public static int shiftRightDeclet(final int dpdHi, final int dpdLo) {
-		return INT_TO_DPD[DPD_TO_INT_LSHIFT_2[dpdHi] + DPD_TO_INT_RSHIFT_1[dpdLo]];
+	public static long shiftRightDeclet(final int dpdHi, final int dpdLo) {
+		return (INT_TO_DPD[DPD_TO_INT_LSHIFT_2[dpdHi] + DPD_TO_INT_RSHIFT_1[dpdLo]]) & 0x3ffL;
+	}
+	public static long shiftLeftDeclet(final int dpdHi, final int dpdLo) {
+		return (INT_TO_DPD[DPD_TO_INT_LSHIFT_1[dpdHi] + DPD_TO_INT_RSHIFT_2[dpdLo]]) & 0x3ffL;
 	}
 	public static long shiftRight(final long dpd) {
 		return shiftRight(
+				0,
 				(int)((dpd >>> 40) & 0x3ff),
 				(int)((dpd >>> 30) & 0x3ff),
 				(int)((dpd >>> 20) & 0x3ff),
 				(int)((dpd >>> 10) & 0x3ff),
 				(int)(dpd & 0x3ff));
 	}
-	public static long shiftRight(final int dpd50, final int dpd40, final int dpd30, final int dpd20, final int dpd10) {
+	public static long shiftRight(final int msd, final int dpd50, final int dpd40, final int dpd30, final int dpd20, final int dpd10) {
 		return shiftRightDeclet(dpd20, dpd10) |
 				(shiftRightDeclet(dpd30, dpd20) << 10) |
 				(shiftRightDeclet(dpd40, dpd30) << 20) |
 				(shiftRightDeclet(dpd50, dpd40) << 30) |
-				(shiftRightDeclet(0, dpd50) << 40);
+				(shiftRightDeclet(msd, dpd50) << 40);
 	}
 
-	public static int shiftRight2Declet(final int dpdHi, final int dpdLo) {
-		return INT_TO_DPD[DPD_TO_INT_LSHIFT_1[dpdHi] + DPD_TO_INT_RSHIFT_2[dpdLo]];
-	}
-	public static long shiftRight2(final long dpd) {
+	public static long shiftRight2(final int msd, final long dpd) {
 		return shiftRight2(
+				msd,
 				(int)((dpd >>> 40) & 0x3ff),
 				(int)((dpd >>> 30) & 0x3ff),
 				(int)((dpd >>> 20) & 0x3ff),
 				(int)((dpd >>> 10) & 0x3ff),
 				(int)(dpd & 0x3ff));
 	}
-	public static long shiftRight2(final int dpd50, final int dpd40, final int dpd30, final int dpd20, final int dpd10) {
-		return shiftRight2Declet(dpd20, dpd10) |
-				(shiftRight2Declet(dpd30, dpd20) << 10) |
-				(shiftRight2Declet(dpd40, dpd30) << 20) |
-				(shiftRight2Declet(dpd50, dpd40) << 30) |
-				(shiftRight2Declet(0, dpd50) << 40);
+	public static long shiftRight2(final int msd, final int dpd50, final int dpd40, final int dpd30, final int dpd20, final int dpd10) {
+		return shiftLeftDeclet(dpd20, dpd10) |
+				(shiftLeftDeclet(dpd30, dpd20) << 10) |
+				(shiftLeftDeclet(dpd40, dpd30) << 20) |
+				(shiftLeftDeclet(dpd50, dpd40) << 30) |
+				(shiftLeftDeclet(msd, dpd50) << 40);
 	}
 
-	private static long shiftRight0to2(final int dpd50,
+	private static long shiftRight0to2(final int msd,
+									   final int dpd50,
 									   final int dpd40,
 									   final int dpd30,
 									   final int dpd20,
 									   final int dpd10,
 									   final int n) {
 		if (n == 1) {
-			return shiftRight(dpd50, dpd40, dpd30, dpd20, dpd10);
+			return shiftRight(msd, dpd50, dpd40, dpd30, dpd20, dpd10);
 		}
 		if (n == 2) {
-			return shiftRight2(dpd50, dpd40, dpd30, dpd20, dpd10);
+			return shiftRight2(msd, dpd50, dpd40, dpd30, dpd20, dpd10);
 		}
-		return dpd10 | (dpd20 << 10) | (dpd30 << 20) | (dpd40 << 30) | dpd50;
+		return (dpd10 & 0x3ffL) | ((dpd20 & 0x3ffL) << 10) | ((dpd30 & 0x3ffL) << 20) | ((dpd40 & 0x3ffL) << 30) | ((dpd50 & 0x3ffL) << 40) | ((msd & 0x00fL) << 50);
 	}
 
 	public static long shiftRight(final long dpd, final int n) {
+		return shiftRight(0, dpd, n);
+	}
+	public static long shiftRight(final int msd, final long dpd, final int n) {
 		final int dpd10 = (int)(dpd & 0x3ff);
 		final int dpd20 = (int)((dpd >>> 10) & 0x3ff);
 		final int dpd30 = (int)((dpd >>> 20) & 0x3ff);
@@ -254,18 +258,80 @@ public class Dpd {
 		//binary search, optimized for small n
 		if (n < 6) {
 			if (n < 3) {
-				return shiftRight0to2(dpd50, dpd40, dpd30, dpd20, dpd10, n);
+				return shiftRight0to2(msd, dpd50, dpd40, dpd30, dpd20, dpd10, n);
 			}
-			return shiftRight0to2(0, dpd50, dpd40, dpd30, dpd20, n-3);
+			return shiftRight0to2(0, msd, dpd50, dpd40, dpd30, dpd20, n-3);
 		}
 		if (n < 12) {
 			if (n < 9) {
-				return shiftRight0to2(0, 0, dpd50, dpd40, dpd30, n - 6);
+				return shiftRight0to2(0, 0, msd, dpd50, dpd40, dpd30, n - 6);
 			}
-			return shiftRight0to2(0, 0, 0, dpd50, dpd40, n-9);
+			return shiftRight0to2(0, 0, 0, msd, dpd50, dpd40, n-9);
 		}
 		if (n < 15) {
-			return shiftRight0to2(0, 0, 0, 0, dpd50, n-12);
+			return shiftRight0to2(0, 0, 0, 0, msd, dpd50, n-12);
+		}
+		return n < 16 ? msd : 0;
+	}
+
+	public static long shiftLeft(final long dpd) {
+		return shiftLeft(
+				(int)((dpd >>> 40) & 0x3ff),
+				(int)((dpd >>> 30) & 0x3ff),
+				(int)((dpd >>> 20) & 0x3ff),
+				(int)((dpd >>> 10) & 0x3ff),
+				(int)(dpd & 0x3ff));
+	}
+	public static long shiftLeft2(final long dpd) {
+		return shiftLeft2(
+				(int)((dpd >>> 40) & 0x3ff),
+				(int)((dpd >>> 30) & 0x3ff),
+				(int)((dpd >>> 20) & 0x3ff),
+				(int)((dpd >>> 10) & 0x3ff),
+				(int)(dpd & 0x3ff));
+	}
+	public static long shiftLeft(final int dpd50, final int dpd40, final int dpd30, final int dpd20, final int dpd10) {
+		return ((DPD_TO_INT_LSHIFT_1[dpd50] & 0x00fL) << 51) | shiftRight2(dpd50, dpd40, dpd30, dpd20, dpd10, 0);
+	}
+	public static long shiftLeft2(final int dpd50, final int dpd40, final int dpd30, final int dpd20, final int dpd10) {
+		return ((DPD_TO_INT_LSHIFT_2[dpd50] & 0x00fL) << 51) | shiftRight(dpd50, dpd40, dpd30, dpd20, dpd10, 0);
+	}
+	private static long shiftLeft0to2(final int dpd50,
+									  final int dpd40,
+									  final int dpd30,
+									  final int dpd20,
+									  final int dpd10,
+									  final int n) {
+		if (n == 1) {
+			return shiftLeft(dpd50, dpd40, dpd30, dpd20, dpd10);
+		}
+		if (n == 2) {
+			return shiftLeft2(dpd50, dpd40, dpd30, dpd20, dpd10);
+		}
+		return (dpd10 & 0x3ffL) | ((dpd20 & 0x3ffL) << 10) | ((dpd30 & 0x3ffL) << 20) | ((dpd40 & 0x3ffL) << 30) | ((dpd50 & 0x3ffL) << 40);
+	}
+
+	public static long shiftLeft(final long dpd, final int n) {
+		final int dpd10 = (int)(dpd & 0x3ff);
+		final int dpd20 = (int)((dpd >>> 10) & 0x3ff);
+		final int dpd30 = (int)((dpd >>> 20) & 0x3ff);
+		final int dpd40 = (int)((dpd >>> 30) & 0x3ff);
+		final int dpd50 = (int)((dpd >>> 40) & 0x3ff);
+		//binary search, optimized for small n
+		if (n < 6) {
+			if (n < 3) {
+				return shiftLeft0to2(dpd50, dpd40, dpd30, dpd20, dpd10, n);
+			}
+			return shiftLeft0to2(dpd40, dpd30, dpd20, dpd10, 0, n-3);
+		}
+		if (n < 12) {
+			if (n < 9) {
+				return shiftLeft0to2(dpd30, dpd20, dpd10, 0, 0, n-6);
+			}
+			return shiftLeft0to2(dpd20, dpd10, 0, 0, 0, n-9);
+		}
+		if (n < 15) {
+			return shiftLeft0to2(dpd10, 0, 0, 0, 0, n-12);
 		}
 		return 0;
 	}
@@ -340,6 +406,14 @@ public class Dpd {
 		return dpdToCharDigit0((int)(dpd & 0x3ff)) - '0';
 	}
 
+	public static long modPow10(final long dpd, final int n) {
+		return dpdToLong(dpd) % pow10(n);//FIXME improve perf
+	}
+
+	private static long pow10(final int n) {
+		return DIGIT_VALUES[n][1];
+	}
+
 	/**
 	 * Converts 10 DPD bits to an integer value from 0 to 999 and returns the least significant digit of this 3 digit
 	 * value. For instance returns '7' for a value 837,
@@ -378,7 +452,7 @@ public class Dpd {
 
 	/**
 	 * Converts 50 DPD bits to an integer value from 0 to 999,999,999,999,999 and returns i-th least significant digit
-	 * of this 15 digit value. For instance returns '8' for a value 12837 and i=3.
+	 * of this 15 digit value. For instance returns '8' for a value 12837 and i=2.
 	 * 
 	 * @param dpd
 	 *            50 DPD value encoding 15 decimal digits

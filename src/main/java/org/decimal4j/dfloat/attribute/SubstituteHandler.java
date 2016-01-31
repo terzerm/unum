@@ -21,8 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.decimal4j.dfloat.encode;
+package org.decimal4j.dfloat.attribute;
 
-public class DFloat {
-	
+/**
+ * Specifiable for any exception: replace the default result of such an exceptional operation with an
+ * alternate result.
+ */
+public class SubstituteHandler implements ExceptionHandler {
+
+    private final long alternateResult;
+
+    public SubstituteHandler(final long alternateResult) {
+        this.alternateResult = alternateResult;
+    }
+    @Override
+    public long handleException(String operation, long a, long b, long result, Flag flag, Flag otherFlag, Attributes attributes) {
+        return alternateResult;
+    }
 }
