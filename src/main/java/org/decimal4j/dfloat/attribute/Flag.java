@@ -32,9 +32,6 @@ public enum Flag {
     Underflow,
     Inexact;
 
-    public static final int NONE = 0;
-    public static final int ALL = (1 << length()) - 1;
-
     private final int mask = 1 << ordinal();
 
     public final boolean test(final int flags) {
@@ -45,39 +42,6 @@ public enum Flag {
     }
     public final int clear(final int flags) {
         return flags & (~mask);
-    }
-
-    public static final EnumSet<Flag> toSet(final int flags) {
-        final EnumSet<Flag> set = EnumSet.noneOf(Flag.class);
-        final int len = UNIVERSE.length;
-        for (int i = 0; i < len; i++) {
-            final Flag flag = UNIVERSE[i];
-            if (flag.test(flags)) {
-                set.add(flag);
-            }
-        }
-        return set;
-    }
-
-    public static final int setAll(final Collection<? extends Flag> flags) {
-        int intFlags = 0;
-        final int len = flags.isEmpty() ? 0 : UNIVERSE.length;
-        for (int i = 0; i < len; i++) {
-            final Flag flag = UNIVERSE[i];
-            if (flags.contains(flag)) {
-                intFlags = flag.set(intFlags);
-            }
-        }
-        return intFlags;
-    }
-
-    public static final int setAll(final Flag... flags) {
-        int intFlags = 0;
-        final int len = flags.length;
-        for (int i = 0; i < len; i++) {
-            intFlags = flags[i].set(intFlags);
-        }
-        return intFlags;
     }
 
     public static final Flag byOrdinal(final int ordinal) {
