@@ -64,6 +64,6 @@ public class Signal {
         return result;
     }
     private static final Flag raiseFlag(final Flag flag, final FlagMode flagMode) {
-        return flagMode == FlagMode.RaiseNoFlag ? null : flag;
+        return flagMode != FlagMode.RaiseNoFlag ? flag : null;
     }
 }

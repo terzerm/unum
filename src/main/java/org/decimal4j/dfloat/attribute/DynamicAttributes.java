@@ -32,7 +32,7 @@ public final class DynamicAttributes implements Attributes, Cloneable {
     private RoundingDirection decimalRoundingDirection;
     private SignalMode signalMode;
     private final Map<Flag, FlagMode> flagModes = new EnumMap<Flag, FlagMode>(Flag.class);
-    private ExceptionHandler exceptionHandler;
+    private final DelegatingExceptionHandler exceptionHandler;
 
     public DynamicAttributes() {
         this.binaryRoundingDirection = DEFAULT.getBinaryRoundingDirection();
@@ -42,7 +42,7 @@ public final class DynamicAttributes implements Attributes, Cloneable {
             final Flag flag = Flag.byOrdinal(i);
             flagModes.put(flag, FlagMode.DEFAULT);
         }
-        this.exceptionHandler = ExceptionHandler.DEFAULT;
+        this.exceptionHandler = new DelegatingExceptionHandler();
     }
     public DynamicAttributes(final Attributes copy) {
         this.binaryRoundingDirection = Objects.requireNonNull(copy.getBinaryRoundingDirection(), "copy.getBinaryRoundingDirection() returned null");
@@ -52,13 +52,13 @@ public final class DynamicAttributes implements Attributes, Cloneable {
             final Flag flag = Flag.byOrdinal(i);
             flagModes.put(flag, copy.getFlagMode(flag));
         }
-        this.exceptionHandler = Objects.requireNonNull(copy.getExceptionHandler(), "copy.getExceptionHandler() returned null");
+        this.exceptionHandler = new DelegatingExceptionHandler(Objects.requireNonNull(copy.getExceptionHandler(), "copy.getExceptionHandler() returned null"));
     }
     private DynamicAttributes(final DynamicAttributes copy) {
         this.binaryRoundingDirection = copy.getBinaryRoundingDirection();
         this.decimalRoundingDirection = copy.getDecimalRoundingDirection();
         this.flagModes.putAll(copy.flagModes);
-        this.exceptionHandler = copy.getExceptionHandler();
+        this.exceptionHandler = copy.exceptionHandler.clone();
     }
 
     public static final DynamicAttributes copyOf(final Attributes attributes) {
@@ -70,9 +70,17 @@ public final class DynamicAttributes implements Attributes, Cloneable {
         return binaryRoundingDirection;
     }
 
+    public void setBinaryRoundingDirection(RoundingDirection binaryRoundingDirection) {
+        this.binaryRoundingDirection = Objects.requireNonNull(binaryRoundingDirection, "binaryRoundingDirection is null");
+    }
+
     @Override
     public final RoundingDirection getDecimalRoundingDirection() {
         return decimalRoundingDirection;
+    }
+
+    public void setDecimalRoundingDirection(RoundingDirection decimalRoundingDirection) {
+        this.decimalRoundingDirection = Objects.requireNonNull(decimalRoundingDirection, "decimalRoundingDirection is null");
     }
 
     @Override
@@ -80,14 +88,32 @@ public final class DynamicAttributes implements Attributes, Cloneable {
         return signalMode;
     }
 
+    public void setSignalMode(SignalMode signalMode) {
+        this.signalMode = Objects.requireNonNull(signalMode, "signalMode is null");
+    }
+
     @Override
-    public final FlagMode getFlagMode(Flag flag) {
+    public final FlagMode getFlagMode(final Flag flag) {
         return flagModes.get(flag);
+    }
+
+    public void setFlagMode(final Flag flag, final FlagMode flagMode) {
+        Objects.requireNonNull(flag, "flag is null");
+        Objects.requireNonNull(flagMode, "flagMode is null");
+        this.flagModes.put(flag, flagMode);
     }
 
     @Override
     public final ExceptionHandler getExceptionHandler() {
         return exceptionHandler;
+    }
+
+    public void setExceptionHandler(final ExceptionHandler exceptionHandler) {
+        this.exceptionHandler.setDefaultHandler(exceptionHandler);
+    }
+
+    public void setExceptionHandler(final Flag flag, final ExceptionHandler exceptionHandler) {
+        this.exceptionHandler.setDelegateHandler(flag, exceptionHandler);
     }
 
     public final DynamicAttributes clone() {

@@ -49,7 +49,7 @@ public final class Add {
         if (Decimal64.isInfinite(a)) {
             if (Decimal64.isInfinite(b)) {
                 if ((a ^ b) < 0) {
-                    return Signal.invalidOperation(OPERATION, a, b, Decimal64.NAN, RoundingDirection.DEFAULT);
+                    return Signal.invalidOperation(OPERATION, a, b, Decimal64.NAN, RoundingDirection.DEFAULT.asAttributes());
                 }
                 return copySignToPositive(Decimal64.INF, a);
             }

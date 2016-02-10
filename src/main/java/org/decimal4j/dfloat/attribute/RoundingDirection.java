@@ -39,7 +39,7 @@ import java.math.RoundingMode;
  * the signs of exact zero sums, and also affects the thresholds beyond which overflow and underflow are
  * signaled.
  */
-public enum RoundingDirection implements Attributes {
+public enum RoundingDirection {
     /**
      * The floating-point number nearest to the infinitely precise result is returned; if the two nearest
      * floating-point numbers bracketing an unrepresentable infinitely precise result are equally near, the
@@ -143,29 +143,18 @@ public enum RoundingDirection implements Attributes {
         }
     }
 
-    @Override
-    public final RoundingDirection getBinaryRoundingDirection() {
-        return this;
-    }
+    private final Attributes attributes = new RoundingAttributes(this);
 
-    @Override
-    public final RoundingDirection getDecimalRoundingDirection() {
-        return this;
-    }
-
-    @Override
-    public SignalMode getSignalMode() {
-        return SignalMode.DEFAULT;
-    }
-
-    @Override
-    public FlagMode getFlagMode(Flag flag) {
-        return FlagMode.DEFAULT;
-    }
-
-    @Override
-    public ExceptionHandler getExceptionHandler() {
-        return ExceptionHandler.DEFAULT;
+    /**
+     * Returns an attributes object with {@link Attributes#getBinaryRoundingDirection() binary}
+     * and {@link Attributes#getDecimalRoundingDirection() decimal} rounding mode both set to this
+     * rounding direction. All other attributes are set to {@link Attributes#DEFAULT default} values.
+     *
+     * @return Default attributes but with this rounding direction for both binary and decimal values
+     * @see Attributes#DEFAULT
+     */
+    public final Attributes asAttributes() {
+        return attributes;
     }
 
     /**
