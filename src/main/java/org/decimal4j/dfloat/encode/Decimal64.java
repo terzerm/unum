@@ -23,6 +23,8 @@
  */
 package org.decimal4j.dfloat.encode;
 
+import org.decimal4j.dfloat.ops.Sign;
+
 /**
  * Encoding implementing the IEEE 754-2008 Decimal 64 Interchange format.
  */
@@ -42,6 +44,9 @@ public class Decimal64 {
 	public static final long SIGN_BIT_MASK = 0x8000000000000000L; /* 1 00000 00 ... sign bit */
 	
 	public static final long ZERO = 0x2238000000000000L;
+
+	public static final long MIN_NORMAL = encode(1, MIN_EXPONENT, 1, 0);
+	public static final long MAX_NORMAL = encode(1, MAX_EXPONENT, 9, 999999999999999L);
 
 	public static final long COEFF_CONT_MASK = 0x0003ffffffffffffL;
 	private static final long EXP_CONT_MASK =  0x03fc000000000000L;
@@ -142,15 +147,15 @@ public class Decimal64 {
 	}
 
 	public static final boolean isNormal(final long dFloat) {
-		return true;//FIXME
+		return isFinite(dFloat) & !isSubnormal(dFloat);
 	}
 
 	public static final boolean isSubnormal(final long dFloat) {
-		return true;//FIXME
+		return Decimal64.getExponent(dFloat) == MIN_EXPONENT & Decimal64.getCombinationMSD(dFloat) == 0;
 	}
 
 	public static final boolean isCanonical(final long dFloat) {
-		return true;//FIXME
+		return Dpd.isCanonical(dFloat);
 	}
 
 	/**

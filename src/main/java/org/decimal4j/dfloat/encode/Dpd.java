@@ -136,6 +136,17 @@ public class Dpd {
 				(canonicalizeDeclet((int) ((dpd >>> 40) & 0x3ff)) << 40);
 	}
 
+	public static boolean isCanonicalDeclet(final int dpd) {
+		return dpd < 1000;
+	}
+	public static boolean isCanonical(final long dpd) {
+		return isCanonicalDeclet((int) (dpd & 0x3ff)) &
+				isCanonicalDeclet((int) ((dpd >>> 10) & 0x3ff)) &
+				isCanonicalDeclet((int) ((dpd >>> 20) & 0x3ff)) &
+				isCanonicalDeclet((int) ((dpd >>> 30) & 0x3ff)) &
+				isCanonicalDeclet((int) ((dpd >>> 40) & 0x3ff));
+	}
+
 	public static int addDeclet(final int dpdA, final int dpdB, int carry) {
 		final int sum = DPD_TO_INT_10[dpdA] + DPD_TO_INT_10[dpdB] + carry;
 		return sum < 1000 ? INT_TO_DPD[sum] : (1<<11) | INT_TO_DPD[sum-1000];

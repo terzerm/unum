@@ -33,8 +33,8 @@ import org.decimal4j.dfloat.signal.Signal;
 public final class FloatMath {
 
 	public static final long ZERO = Decimal64.ZERO;
-	public static final long MIN_NORMAL = 0;//FIXME
-	public static final long MAX_NORMAL = 0;//FIXME
+	public static final long MIN_NORMAL = Decimal64.MIN_NORMAL;
+	public static final long MAX_NORMAL = Decimal64.MAX_NORMAL;
 
 	/**
 	 * Copy the sign of b into a.
