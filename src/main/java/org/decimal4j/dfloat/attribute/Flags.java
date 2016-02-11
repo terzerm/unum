@@ -32,14 +32,15 @@ public class Flags {
 
     /** An empty set of flags with no flags raised */
     public static final int NONE = 0;
-    /** An set of flags with all flags raised */
+
+    /** A set of flags with all flags raised */
     public static final int ALL = (1 << Flag.length()) - 1;
 
     /** Flags associated with the current thread*/
     private static ThreadLocal<int[]> FLAGS = new ThreadLocal<int[]>() {
         @Override
         protected int[] initialValue() {
-            return new int[1];
+            return new int[]{NONE};
         }
     };
 
@@ -213,6 +214,17 @@ public class Flags {
      */
     public static void raiseFlags(final int exceptionGroup) {
         FLAGS.get()[0] |= (exceptionGroup & ALL);
+    }
+
+    /**
+     * Resets all flags if and only if {@code resetMode} equals {@link ResetMode#Reset Reset}.
+     *
+     * @param resetMode the mode determining whether or not to reset all flags
+     */
+    public static void resetFlags(final ResetMode resetMode) {
+        if (resetMode == ResetMode.Reset) {
+            lowerFlags();
+        }
     }
 
 }

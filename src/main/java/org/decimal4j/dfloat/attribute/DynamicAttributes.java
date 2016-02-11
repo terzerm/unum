@@ -30,7 +30,8 @@ import java.util.Objects;
 public final class DynamicAttributes implements Attributes, Cloneable {
     private RoundingDirection binaryRoundingDirection;
     private RoundingDirection decimalRoundingDirection;
-    private SignalMode signalMode;
+    private ResetMode resetMode;
+    private DelayMode delayMode;
     private final Map<Flag, FlagMode> flagModes = new EnumMap<Flag, FlagMode>(Flag.class);
     private final DelegatingExceptionHandler exceptionHandler;
 
@@ -84,12 +85,21 @@ public final class DynamicAttributes implements Attributes, Cloneable {
     }
 
     @Override
-    public final SignalMode getSignalMode() {
-        return signalMode;
+    public ResetMode getResetMode() {
+        return resetMode;
     }
 
-    public void setSignalMode(SignalMode signalMode) {
-        this.signalMode = Objects.requireNonNull(signalMode, "signalMode is null");
+    public void setResetMode(ResetMode resetMode) {
+        this.resetMode = Objects.requireNonNull(resetMode, "resetMode is null");
+    }
+
+    @Override
+    public final DelayMode getDelayMode() {
+        return delayMode;
+    }
+
+    public void setDelayMode(DelayMode delayMode) {
+        this.delayMode = Objects.requireNonNull(delayMode, "delayMode is null");
     }
 
     @Override

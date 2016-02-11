@@ -40,6 +40,12 @@ public class Signal {
         return signal(operation, a, b, result, Flag.DivisionByZero, null, attributes);
     }
 
+    public static final long overflow(final String operation,
+                                      final long a, final long b, final long result,
+                                      final Attributes attributes) {
+        return signal(operation, a, b, result, Flag.Overflow, Flag.Inexact, attributes);
+    }
+
     private Signal() {
         throw new IllegalStateException("No Flag for you!");
     }

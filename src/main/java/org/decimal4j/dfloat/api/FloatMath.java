@@ -27,6 +27,7 @@ import org.decimal4j.dfloat.encode.Decimal64;
 import org.decimal4j.dfloat.encode.Dpd;
 import org.decimal4j.dfloat.ops.Add;
 import org.decimal4j.dfloat.ops.Sign;
+import org.decimal4j.dfloat.ops.Sub;
 import org.decimal4j.dfloat.signal.Signal;
 
 public final class FloatMath {
@@ -56,7 +57,7 @@ public final class FloatMath {
 	}
 
 	public static long subtract(final long a, final long b) {
-		return add(a, Sign.flipSign(b));
+		return Sub.subtract(a, b);
 	}
 
 	public static boolean isInfinite(final long a) {

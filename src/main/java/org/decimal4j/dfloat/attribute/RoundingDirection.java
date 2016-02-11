@@ -23,7 +23,10 @@
  */
 package org.decimal4j.dfloat.attribute;
 
+import org.decimal4j.dfloat.api.FloatMath;
+import org.decimal4j.dfloat.encode.Decimal64;
 import org.decimal4j.dfloat.ops.Remainder;
+import org.decimal4j.dfloat.ops.Sign;
 
 import java.math.RoundingMode;
 
@@ -54,6 +57,10 @@ public enum RoundingDirection {
         public final boolean isRoundingIncrementPossible(long signumValue) {
             return true;
         }
+        @Override
+        public final long roundOverflow(long signumValue) {
+            return Sign.copySign(Decimal64.INF, signumValue);
+        }
     },
     /**
      * The floating-point number nearest to the infinitely precise result is returned; if the two nearest
@@ -69,6 +76,10 @@ public enum RoundingDirection {
         public final boolean isRoundingIncrementPossible(long signumValue) {
             return true;
         }
+        @Override
+        public final long roundOverflow(long signumValue) {
+            return Sign.copySign(Decimal64.INF, signumValue);
+        }
     },
     /**
      * The result is the floating-point number closest to and no less than the infinitely precise result
@@ -82,6 +93,10 @@ public enum RoundingDirection {
         @Override
         public final boolean isRoundingIncrementPossible(long signumValue) {
             return signumValue >= 0;
+        }
+        @Override
+        public final long roundOverflow(long signumValue) {
+            return signumValue >= 0 ? Decimal64.INF : Sign.copySign(FloatMath.MAX_NORMAL, -1);
         }
     },
     /**
@@ -97,6 +112,10 @@ public enum RoundingDirection {
         public final boolean isRoundingIncrementPossible(long signumValue) {
             return signumValue <= 0;
         }
+        @Override
+        public final long roundOverflow(long signumValue) {
+            return signumValue < 0 ? Sign.copySign(Decimal64.INF, -1) : FloatMath.MAX_NORMAL;
+        }
     },
     /**
      * The result is the floating-point number closest to and no greater in magnitude than the infinitely
@@ -110,6 +129,10 @@ public enum RoundingDirection {
         @Override
         public final boolean isRoundingIncrementPossible(long signumValue) {
             return false;
+        }
+        @Override
+        public final long roundOverflow(long signumValue) {
+            return Sign.copySign(FloatMath.MAX_NORMAL, signumValue);
         }
     };
 
@@ -175,4 +198,12 @@ public enum RoundingDirection {
      * @return true if rounding increment 1 is possible with the given signumValue, and false if it is always 0
      */
     abstract public boolean isRoundingIncrementPossible(long signumValue);
+
+    /**
+     * Returns the rounded overflow value.
+     *
+     * @param signumValue           the signum value of the result, negative or positive
+     * @return overflow value rounded according to IEEE 754-2008 section 7.4.
+     */
+    abstract public long roundOverflow(long signumValue);
 }

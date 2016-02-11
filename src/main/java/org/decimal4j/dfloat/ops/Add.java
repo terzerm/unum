@@ -23,6 +23,8 @@
  */
 package org.decimal4j.dfloat.ops;
 
+import org.decimal4j.dfloat.attribute.Attributes;
+import org.decimal4j.dfloat.attribute.Flags;
 import org.decimal4j.dfloat.attribute.RoundingDirection;
 import org.decimal4j.dfloat.encode.Decimal64;
 import org.decimal4j.dfloat.encode.Dpd;
@@ -32,11 +34,93 @@ import static org.decimal4j.dfloat.ops.Sign.copySignToPositive;
 
 public final class Add {
 
-    private static final String OPERATION = "add";
+    private static final String ADD = "add";
+    private static final String SUB = "subtract";
 
-    public static long add(long a, long b) {
+    static enum OpMode{
+        Add {
+            @Override
+            final long a(final long a, final long b) {
+                return a;
+            }
+
+            @Override
+            final long b(long a, long b) {
+                return b;
+            }
+
+            @Override
+            final OpMode flip() {
+                return AddFlipped;
+            }
+        },
+        AddFlipped {
+            @Override
+            final long a(final long a, final long b) {
+                return b;
+            }
+
+            @Override
+            final long b(long a, long b) {
+                return a;
+            }
+
+            @Override
+            final OpMode flip() {
+                return Add;
+            }
+        },
+        Subtract {
+            @Override
+            final long a(final long a, final long b) {
+                return a;
+            }
+
+            @Override
+            final long b(long a, long b) {
+                return Sign.flipSign(b);
+            }
+
+            @Override
+            final OpMode flip() {
+                return SubtractFlipped;
+            }
+        },
+        SubtractFlipped {
+            @Override
+            final long a(final long a, final long b) {
+                return Sign.flipSign(b);
+            }
+
+            @Override
+            final long b(long a, long b) {
+                return a;
+            }
+
+            @Override
+            final OpMode flip() {
+                return Subtract;
+            }
+        };
+        final String operation() {return this == Add | this == AddFlipped ? ADD : SUB;}
+        abstract long a(long a, long b);
+        abstract long b(long a, long b);
+        abstract OpMode flip();
+    }
+
+    public static long add(final long a, final long b) {
+        return add(a, b, Attributes.DEFAULT, OpMode.Add);
+    }
+    public static long add(final long a, final long b, final RoundingDirection roundingDirection) {
+        return add(a, b, roundingDirection.asAttributes(), OpMode.Add);
+    }
+    public static long add(final long a, final long b, final Attributes attributes) {
+        return add(a, b, attributes, OpMode.Add);
+    }
+    static long add(final long a, final long b, final Attributes attributes, OpMode opMode) {
+        Flags.resetFlags(attributes.getResetMode());
         if (Decimal64.isFinite(a) & Decimal64.isFinite(b)) {
-            return addFinite(a, b, RoundingDirection.DEFAULT);
+            return addFinite(a, b, attributes, opMode);
         }
         //at least one is NaN or Infinite
         if (Decimal64.isNaN(a)) {
@@ -49,7 +133,7 @@ public final class Add {
         if (Decimal64.isInfinite(a)) {
             if (Decimal64.isInfinite(b)) {
                 if ((a ^ b) < 0) {
-                    return Signal.invalidOperation(OPERATION, a, b, Decimal64.NAN, RoundingDirection.DEFAULT.asAttributes());
+                    return Signal.invalidOperation(opMode.operation(), a, b, Decimal64.NAN, attributes);
                 }
                 return copySignToPositive(Decimal64.INF, a);
             }
@@ -58,27 +142,30 @@ public final class Add {
         return copySignToPositive(Decimal64.INF, b);
 
     }
-    private static final long addFinite(final long a, final long b, final RoundingDirection roundingDirection) {
+    private static final long addFinite(final long a, final long b,
+                                        final Attributes attributes,
+                                        OpMode opMode) {
         final int msdA = Decimal64.getCombinationMSD(a);
         final int msdB = Decimal64.getCombinationMSD(b);
         final int expA = Decimal64.getExponent(a);
         final int expB = Decimal64.getExponent(b);
         if (expA == expB) {
-            return addFiniteSameExponent(msdA, a, msdB, b, expA, roundingDirection);
+            return addFiniteSameExponent(msdA, a, msdB, b, expA, attributes, opMode);
         }
         if (expA > expB) {
-            return addFiniteDifferentExponent(msdA, a, expA, msdB, b, expB, roundingDirection);
+            return addFiniteDifferentExponent(msdA, a, expA, msdB, b, expB, attributes, opMode);
         } else {
-            return addFiniteDifferentExponent(msdB, b, expB, msdA, a, expA, roundingDirection);
+            return addFiniteDifferentExponent(msdB, b, expB, msdA, a, expA, attributes, opMode.flip());
         }
     }
 
     private static long addFiniteSameExponent(final int msdA, final long a,
                                               final int msdB, final long b,
-                                              final int exp, final RoundingDirection roundingDirection) {
+                                              final int exp, final Attributes attributes,
+                                              OpMode opMode) {
         if ((a ^ b) >= 0) {
             //a and b have same sign
-            return addFiniteSameExponentAndSign(msdA, a, msdB, b, exp, roundingDirection);
+            return addFiniteSameExponentAndSign(msdA, a, msdB, b, exp, attributes, opMode);
         }
         //exactly one is negative
         if (compareMantissa(msdA, a, msdB, b) >= 0) {
@@ -90,12 +177,14 @@ public final class Add {
 
     private static long addFiniteSameExponentAndSign(final int msdA, final long a,
                                                      final int msdB, final long b,
-                                                     final int exp, final RoundingDirection roundingDirection) {
+                                                     final int exp, final Attributes attributes,
+                                                     OpMode opMode) {
         final long sum10to50 = Dpd.add(a, b);
         final int sumMSD = msdA + msdB + (int) (sum10to50 >>> 51);
         if (sumMSD <= 9) {
             return Decimal64.encode(a & Decimal64.SIGN_BIT_MASK, exp, sumMSD, sum10to50);
         }
+        final RoundingDirection roundingDirection = attributes.getDecimalRoundingDirection();
         //mantissa overflow
         if (exp < Decimal64.MAX_EXPONENT) {
             final long shifted = Dpd.shiftRight(sum10to50);
@@ -111,8 +200,9 @@ public final class Add {
             }
             return Decimal64.encode(sign, exp + 1, sumMSD - 10, shifted);
         }
-        //exponent overflow ==> Infinity
-        return Sign.copySign(Decimal64.INF, a);
+        //exponent overflow
+        final long result = roundingDirection.roundOverflow(a);
+        return Signal.overflow(opMode.operation(), a, b, result, attributes);
     }
 
     //PRECONDITION: |a| >= |b|
@@ -129,7 +219,10 @@ public final class Add {
     }
 
     //PRECONDITION: expA > expB
-    private static long addFiniteDifferentExponent(final int msdA, final long a, final int expA, final int msdB, final long b, final int expB, final RoundingDirection roundingDirection) {
+    private static long addFiniteDifferentExponent(final int msdA, final long a, final int expA,
+                                                   final int msdB, final long b, final int expB,
+                                                   final Attributes attributes,
+                                                   OpMode opMode) {
         final int expDiff = expA - expB;
         if (expDiff < 16) {
             //mantissa have some overlap: | a | a/b | b |
@@ -167,6 +260,7 @@ public final class Add {
                 modS = Dpd.mod10(s);
             }
             final long sign = a & Decimal64.SIGN_BIT_MASK;
+            final RoundingDirection roundingDirection = attributes.getDecimalRoundingDirection();
             if (roundingDirection.isRoundingIncrementPossible(sign)) {
                 final Remainder remainder = expD > 16 | msdB < 5 ? Remainder.GREATER_THAN_ZERO_BUT_LESS_THAN_HALF : msdB > 5 | (msdB == 5 & b != 0) ? Remainder.GREATER_THAN_HALF : Remainder.EQUAL_TO_HALF;
                 final int inc = roundingDirection.getRoundingIncrement(sign, modS, remainder);
@@ -182,15 +276,11 @@ public final class Add {
                         return Decimal64.encode(sign, expS + 1, msd - 10, rounded);
                     }
                     //exponent overflow ==> Infinity
-                    return Sign.copySign(Decimal64.INF, a);
+                    final long result = roundingDirection.roundOverflow(a);
+                    return Signal.overflow(opMode.operation(), opMode.a(a, b), opMode.b(a, b), result, attributes);
                 }
             }
             return Decimal64.encode(sign, expA, msdA, a);
         }
-    }
-
-    private static final int numberOfTrailingZeros(final int msd, final long dpd) {
-        final int ntz = Dpd.numberOfTrailingZeros(dpd);
-        return ntz < 15 ? ntz : msd == 0 ? 16 : 15;
     }
 }

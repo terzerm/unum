@@ -57,8 +57,13 @@ public final class RoundingAttributes implements Attributes {
     }
 
     @Override
-    public final SignalMode getSignalMode() {
-        return nonRoundingAttributes.getSignalMode();
+    public final ResetMode getResetMode() {
+        return nonRoundingAttributes.getResetMode();
+    }
+
+    @Override
+    public final DelayMode getDelayMode() {
+        return nonRoundingAttributes.getDelayMode();
     }
 
     public final FlagMode getFlagMode(final Flag flag) {

@@ -21,16 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.decimal4j.dfloat.attribute;
+package org.decimal4j.dfloat.ops;
 
-public interface Attributes {
+import org.decimal4j.dfloat.attribute.Attributes;
+import org.decimal4j.dfloat.attribute.RoundingDirection;
 
-    Attributes DEFAULT = DefaultAttributes.INSTANCE;
+public final class Sub {
 
-    RoundingDirection getBinaryRoundingDirection();
-    RoundingDirection getDecimalRoundingDirection();
-    ResetMode getResetMode();
-    DelayMode getDelayMode();
-    FlagMode getFlagMode(Flag flag);
-    ExceptionHandler getExceptionHandler();
+    public static long subtract(final long a, final long b) {
+        return Add.add(a, Sign.flipSign(b), Attributes.DEFAULT, Add.OpMode.Subtract);
+    }
+    public static long subtract(final long a, final long b, final RoundingDirection roundingDirection) {
+        return Add.add(a, Sign.flipSign(b), roundingDirection.asAttributes(), Add.OpMode.Subtract);
+    }
+    public static long subtract(final long a, final long b, final Attributes attributes) {
+        return Add.add(a, Sign.flipSign(b), attributes, Add.OpMode.Subtract);
+    }
 }

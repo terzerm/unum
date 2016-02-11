@@ -40,8 +40,13 @@ public enum DefaultAttributes implements Attributes {
     }
 
     @Override
-    public final SignalMode getSignalMode() {
-        return SignalMode.DEFAULT;
+    public final ResetMode getResetMode() {
+        return ResetMode.DEFAULT;
+    }
+
+    @Override
+    public final DelayMode getDelayMode() {
+        return DelayMode.DEFAULT;
     }
 
     public final FlagMode getFlagMode(final Flag flag) {

@@ -24,19 +24,18 @@
 package org.decimal4j.dfloat.attribute;
 
 /**
- * Defines whether or not to delay raising of exceptions.
+ * Defines whether flags are reset before the evaluation of a function or operation or if they shall
+ * be inherited from the previous call.
  */
-public enum SignalMode {
+public enum ResetMode {
     /**
-     * Orderly complete execution of the operation and delay raising of the
-     * exception. This method may be slower but is fully deterministic.
+     * Reset all flags before an operation or function evaluation.
      */
-    Delayed,
+    Reset,
     /**
-     * An exception is raised immediately when detected. This method may
-     * be faster but is not necessarily deterministic
+     * Inherit and don't reset any flags.
      */
-    Immediate;
+    Inherit;
 
-    public static final SignalMode DEFAULT = Delayed;
+    public static final ResetMode DEFAULT = Reset;
 }

@@ -23,14 +23,20 @@
  */
 package org.decimal4j.dfloat.attribute;
 
-public interface Attributes {
+/**
+ * Defines whether or not to delay raising of exceptions.
+ */
+public enum DelayMode {
+    /**
+     * Orderly complete execution of the operation and delay raising of the
+     * exception. This method may be slower but is fully deterministic.
+     */
+    Delayed,
+    /**
+     * An exception is raised immediately when detected. This method may
+     * be faster but is not necessarily deterministic
+     */
+    Immediate;
 
-    Attributes DEFAULT = DefaultAttributes.INSTANCE;
-
-    RoundingDirection getBinaryRoundingDirection();
-    RoundingDirection getDecimalRoundingDirection();
-    ResetMode getResetMode();
-    DelayMode getDelayMode();
-    FlagMode getFlagMode(Flag flag);
-    ExceptionHandler getExceptionHandler();
+    public static final DelayMode DEFAULT = Delayed;
 }
