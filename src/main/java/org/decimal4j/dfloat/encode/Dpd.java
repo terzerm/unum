@@ -413,6 +413,13 @@ public class Dpd {
 		return numberOfTrailingZerosDeclet((int)((dpd >>> 40) & 0x3ff)) + 12;
 	}
 
+	public static boolean isZero(final long dpd) {
+		return 0 == (dpd & 0x3ff)
+				+ ((dpd >>> 10) & 0x3ff)
+				+ ((dpd >>> 20) & 0x3ff)
+				+ ((dpd >>> 30) & 0x3ff)
+				+ ((dpd >>> 40) & 0x3ff);
+	}
 	public static int mod10(final long dpd) {
 		return dpdToCharDigit0((int)(dpd & 0x3ff)) - '0';
 	}

@@ -23,6 +23,8 @@
  */
 package org.decimal4j.dfloat.api;
 
+import org.decimal4j.dfloat.attribute.Attributes;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -31,8 +33,7 @@ import java.math.RoundingMode;
 public class AbstractFloatArithmetic implements FloatArithmetic {
 
 	@Override
-	public RoundingMode getRoundingMode() {
-		// TODO Auto-generated method stub
+	public Attributes getAttributes() {
 		return null;
 	}
 

@@ -46,6 +46,12 @@ public class Signal {
         return signal(operation, a, b, result, Flag.Overflow, Flag.Inexact, attributes);
     }
 
+    public static final long inexact(final String operation,
+                                     final long a, final long b, final long result,
+                                     final Attributes attributes) {
+        return signal(operation, a, b, result, Flag.Inexact, null, attributes);
+    }
+
     private Signal() {
         throw new IllegalStateException("No Flag for you!");
     }
