@@ -479,6 +479,27 @@ public class Dpd {
 		return atLeast;
 	}
 
+	//PRECONDITION: n>0
+	public static Remainder remainderOfPow10(final int msd, final long dpd, final int n) {
+		if (msd > '5') return Remainder.GREATER_THAN_HALF;
+		if (msd > '0' & msd < '5') return Remainder.GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
+		final Remainder atLeast, atMost;
+		if (msd == '0') {
+			atLeast = Remainder.ZERO;
+			atMost = Remainder.GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
+		} else {
+			//digit == 5
+			atLeast = Remainder.EQUAL_TO_HALF;
+			atMost = Remainder.GREATER_THAN_HALF;
+		}
+		for (int i = 0; i < n; i++) {
+			if (dpdToCharDigit(dpd, i) != '0') {
+				return atMost;
+			}
+		}
+		return atLeast;
+	}
+
 	/**
 	 * Converts 10 DPD bits to an integer value from 0 to 999 and returns the i-th least significant digit of this 3 digit
 	 * declet. For instance returns '7' for a value 837 and i=0,

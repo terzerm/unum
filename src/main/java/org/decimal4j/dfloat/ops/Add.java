@@ -195,22 +195,16 @@ public final class Add {
                 final RoundingDirection roundingDirection = attributes.getDecimalRoundingDirection();
                 final long sgn = a & Decimal64.SIGN_BIT_MASK;
                 if (roundingDirection.isRoundingIncrementPossible(sgn)) {
-                    final int lsd10 = Dpd.mod10(rsh);
                     final Remainder remainder = Remainder.ofDigit(mod);
-                    final int inc = roundingDirection.getRoundingIncrement(sgn, lsd10, remainder);
-                    if (inc > 0) {
-                        return incRoundingAndSignalInexact(sgn, exp + 1, hiMSD, rsh, opMode, a, b, attributes);
-                    }
+                    return roundAndSignalInexact(sgn, exp + 1, hiMSD, rsh, remainder, roundingDirection, opMode, a, b, attributes);
                 }
-                final long result = Decimal64.encode(sgn, exp + 1, hiMSD, rsh);
-                return Signal.inexact(opMode.operation(), opMode.a(a, b), opMode.b(a, b), result, attributes);
+                return signalInexact(sgn, exp + 1, hiMSD, rsh, opMode, a, b, attributes);
             }
             //still exact after shift right
             return Decimal64.encode(a, exp + 1, hiMSD, rsh);
         }
         //exponent overflow
-        final long result = attributes.getDecimalRoundingDirection().roundOverflow(a);
-        return Signal.overflow(opMode.operation(), a, b, result, attributes);
+        return signalOverflow(a, opMode, a, b, attributes);
     }
 
     //PRECONDITION: |a| >= |b|
@@ -262,14 +256,11 @@ public final class Add {
                         final long sgn = a & Decimal64.SIGN_BIT_MASK;
                         if (roundingDirection.isRoundingIncrementPossible(sgn)) {
                             final Remainder remainder = Dpd.remainderOfPow10(b, 15);
-                            final int lsd = Dpd.mod10(s);
-                            final int inc = roundingDirection.getRoundingIncrement(sgn, lsd, remainder);
-                            if (inc > 0) {
-                                return incRoundingAndSignalInexact(sgn, expA, msdA, s, opMode, a, b, attributes);
+                            if (remainder != Remainder.ZERO) {
+                                return roundAndSignalInexact(sgn, expA, msdA, s, remainder, roundingDirection, opMode, a, b, attributes);
                             }
                         }
-                        final long result = Decimal64.encode(sgn, expA, msdA, s);
-                        return Signal.inexact(opMode.operation(), opMode.a(a, b), opMode.b(a, b), result, attributes);
+                        return signalInexact(sgn, expA, msdA, s, opMode, a, b, attributes);
                     }
                     //exact result
                     return Decimal64.encode(a, expA, msdA, s);
@@ -280,36 +271,34 @@ public final class Add {
                     //we're done. exact result is |s|b| with expB
                     return Decimal64.encode(a, expB, (int)s, b);
                 }
-                final int shift = Math.min(15, 1 + Dpd.numberOfLeadingZeros(s));
-                final int msd = Dpd.dpdToCharDigit(s, 15 - shift) - '0';
-                final long hi = Dpd.shiftLeft(s, shift);
-                final long lo = Dpd.shiftRight(b, 15-shift);
-                final long dpd = Dpd.add(hi, lo);//no overflow possible (it is logically an or, not an add)
-                final Remainder remainder = Dpd.remainderOfPow10(b, 15 - shift);
-                if (remainder != Remainder.ZERO) {
-                    //inexact result
-                    final RoundingDirection roundingDirection = attributes.getDecimalRoundingDirection();
-                    final long sgn = a & Decimal64.SIGN_BIT_MASK;
-                    if (roundingDirection.isRoundingIncrementPossible(sgn)) {
-                        final int lsd = Dpd.mod10(dpd);
-                        final int inc = roundingDirection.getRoundingIncrement(sgn, lsd, remainder);
-                        if (inc > 0) {
-                            return incRoundingAndSignalInexact(sgn, expA - shift, msd, dpd, opMode, a, b, attributes);
-                        }
-                    }
-                    final long result = Decimal64.encode(sgn, expA - shift, msd, dpd);
-                    return Signal.inexact(opMode.operation(), opMode.a(a, b), opMode.b(a, b), result, attributes);
-                }
-                //exact result
-                return Decimal64.encode(a, expA - shift, msd, dpd);
+                return shiftLeftTowardsPreferredExponent(a, s, b, expA, expB, opMode, a, b, attributes);
             }
             //msdB plus at least 1 digit of b overlaps with a: | msdA | a1 | a0+[msdB,b1] | b0 |
             final long hiB = Dpd.shiftRight(msdB, b, expDiff);
             final long dpd = Dpd.add(a, hiB);
             final int msd = msdA + (int)(dpd >>> 51);
-
-
-            return Decimal64.NAN;//FIXME
+            if (msd > 0) {
+                if (msd <= 9) {
+                    //result exponent is expA
+                    final Remainder remainder = Dpd.remainderOfPow10(b, expDiff);
+                    final long sgn = a & Decimal64.SIGN_BIT_MASK;
+                    return roundIfNecessaryAndSignalInexact(sgn, expA, msd, dpd, remainder, opMode, a, b, attributes);
+                }
+                //mantissa overflow
+                final int loMSD = msd - 10;
+                final int hiMSD = 1;// |hi|lo| = |1|x| becomes 1 after shift right
+                final long sgn = a & Decimal64.SIGN_BIT_MASK;
+                if (expA < Decimal64.MAX_EXPONENT) {
+                    final long rsh = Dpd.shiftRight(loMSD, dpd);
+                    final Remainder remainder = Dpd.remainderOfPow10(loMSD, b, expDiff);
+                    return roundIfNecessaryAndSignalInexact(sgn, expA + 1, hiMSD, rsh, remainder, opMode, a, b, attributes);
+                }
+                //exponent overflow
+                return signalOverflow(sgn, opMode, a, b, attributes);
+            }
+            //we must try to approach expB as much as possible
+            final long loB = Dpd.shiftLeft(b, 15-expDiff);
+            return shiftLeftTowardsPreferredExponent(a, dpd, loB, expA, expB, opMode, a, b, attributes);
         } else {
             //mantissa have no overlap:   | a | ... | b |
             //--> result = a + round(b)
@@ -346,11 +335,23 @@ public final class Add {
                         return incRoundingAndSignalInexact(sign, expS, msdS, s, opMode, a, b, attributes);
                     }
                 }
-                final long result = Decimal64.encode(sign, expA, msdA, a);
-                return Signal.inexact(opMode.operation(), opMode.a(a, b), opMode.b(a, b), result, attributes);
+                signalInexact(sign, expA, msdA, a, opMode, a, b, attributes);
             }
             return Decimal64.encode(sign, expA, msdA, a);
         }
+    }
+
+    //PRECONDITION: (exp - expPreferred) = [1..15]
+    private static long shiftLeftTowardsPreferredExponent(final long sgn, final long dpdHi, final long dpdLo,
+                                                          final int exp, final int expPreferred,
+                                                          final OpMode opMode, final long a, final long b, final Attributes attributes) {
+        final int shift = Math.min(exp - expPreferred, 1 + Dpd.numberOfLeadingZeros(dpdHi));
+        final int msdS = Dpd.dpdToCharDigit(dpdHi, 15 - shift) - '0';
+        final long hi = Dpd.shiftLeft(dpdHi, shift);
+        final long lo = Dpd.shiftRight(dpdLo, 15-shift);
+        final long s = Dpd.add(hi, lo);//no overflow possible (it is logically an or, not an add)
+        final Remainder remainder = Dpd.remainderOfPow10(dpdLo, 15 - shift);
+        return roundIfNecessaryAndSignalInexact(sgn, exp - shift, msdS, s, remainder, opMode, a, b, attributes);
     }
 
     //PRECONDITION: expA > expB
@@ -360,22 +361,55 @@ public final class Add {
         return Decimal64.NAN;//FIXME
     }
 
+    private static long roundIfNecessaryAndSignalInexact(final long sign, final int exp, final int msd, final long dpd,
+                                                         final Remainder remainder,
+                                                         final OpMode opMode, final long a, final long b, final Attributes attributes) {
+        if (remainder != Remainder.ZERO) {
+            //inexact result
+            final RoundingDirection roundingDirection = attributes.getDecimalRoundingDirection();
+            if (roundingDirection.isRoundingIncrementPossible(sign)) {
+                return roundAndSignalInexact(sign, exp, msd, dpd, remainder, roundingDirection, opMode, a, b, attributes);
+            }
+            return signalInexact(sign, exp, msd, dpd, opMode, a, b, attributes);
+        }
+        //exact result
+        return Decimal64.encode(sign, exp, msd, dpd);
+    }
+    //RECOMMENDED: remainder != ZERO && true==roundingDirection.isRoundingIncrementPossible(sign)
+    private static long roundAndSignalInexact(final long sign, final int exp, final int msd, final long dpd,
+                                              final Remainder remainder, final RoundingDirection roundingDirection,
+                                              final OpMode opMode, final long a, final long b, final Attributes attributes) {
+        final int lsd = Dpd.mod10(dpd);
+        final int inc = roundingDirection.getRoundingIncrement(sign, lsd, remainder);
+        if (inc > 0) {
+            return incRoundingAndSignalInexact(sign, exp, msd, dpd, opMode, a, b, attributes);
+        }
+        return signalInexact(sign, exp, msd, dpd, opMode, a, b, attributes);
+    }
     private static long incRoundingAndSignalInexact(final long sign, final int exp, final int msd, final long dpd,
                                                     final OpMode opMode, final long a, final long b, final Attributes attributes) {
         final long incremented = Dpd.inc(dpd);
         final long dpdI = incremented & Decimal64.COEFF_CONT_MASK;
         final int msdI = msd + (int) (incremented >>> 51);
         if (msdI <= 9) {
-            final long result = Decimal64.encode(sign, exp, msdI, dpdI);
-            return Signal.inexact(opMode.operation(), opMode.a(a, b), opMode.b(a, b), result, attributes);
+            return signalInexact(sign, exp, msdI, dpdI, opMode, a, b, attributes);
         }
         //mantissa overflow
         if (exp < Decimal64.MAX_EXPONENT) {
             //after increment, it must be 10.0000, shift right becomes 1.0000
-            final long result = Decimal64.encode(sign, exp + 1, 1, 0);
-            return Signal.inexact(opMode.operation(), opMode.a(a, b), opMode.b(a, b), result, attributes);
+            return signalInexact(sign, exp + 1, 1, 0, opMode, a, b, attributes);
         }
         //exponent overflow ==> Infinity
+        return signalOverflow(sign, opMode, a, b, attributes);
+    }
+
+    private static long signalInexact(final long sign, final int exp, final int msd, final long dpd,
+                                      final OpMode opMode, final long a, final long b, final Attributes attributes) {
+        final long result = Decimal64.encode(sign, exp, msd, dpd);
+        return Signal.inexact(opMode.operation(), opMode.a(a, b), opMode.b(a, b), result, attributes);
+    }
+
+    private static long signalOverflow(final long sign, final OpMode opMode, final long a, final long b, final Attributes attributes) {
         final long result = attributes.getDecimalRoundingDirection().roundOverflow(sign);
         return Signal.overflow(opMode.operation(), opMode.a(a, b), opMode.b(a, b), result, attributes);
     }

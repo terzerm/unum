@@ -50,6 +50,13 @@ public enum Remainder {
         if (digit < 5) return GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
         return EQUAL_TO_HALF;
     }
+    public static final Remainder of(final int msd, final long remainder) {
+        if (msd > 5) return GREATER_THAN_HALF;
+        if (remainder != 0) {
+            return msd < 5 ? GREATER_THAN_ZERO_BUT_LESS_THAN_HALF : GREATER_THAN_HALF;
+        }
+        return msd == 0 ? ZERO : msd < 5 ? GREATER_THAN_ZERO_BUT_LESS_THAN_HALF : EQUAL_TO_HALF;
+    }
     public static final Remainder ofPow10(final long remainder, final int n) {
         if (remainder == 0) return ZERO;
         if (n < POW10_HALF.length) {
