@@ -43,7 +43,6 @@ public class Shift {
 	private static final int[] DPD_TO_INT_RSH_2 = initRsh2();
 	private static final int[] DPD_TO_INT_LSH_1 = initLsh1();
 	private static final int[] DPD_TO_INT_LSH_2 = initLsh2();
-	private static final int[] DIGIT_INDEX_SHIFT = {0, 0, 0, 10, 10, 10, 20, 20, 20, 30, 30, 30, 40, 40, 40};
 
 	public static final int shiftRightDeclet(final int dpdHi, final int dpdLo) {
 		return Declet.intToDpd(DPD_TO_INT_LSH_2[dpdHi] + DPD_TO_INT_RSH_1[dpdLo]);

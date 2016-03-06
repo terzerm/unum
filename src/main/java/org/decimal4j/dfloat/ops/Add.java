@@ -28,7 +28,7 @@ import org.decimal4j.dfloat.attribute.Flags;
 import org.decimal4j.dfloat.attribute.RoundingDirection;
 import org.decimal4j.dfloat.dpd.Digit;
 import org.decimal4j.dfloat.dpd.Dpd;
-import org.decimal4j.dfloat.dpd.Modulo;
+import org.decimal4j.dfloat.dpd.Rem;
 import org.decimal4j.dfloat.dpd.Shift;
 import org.decimal4j.dfloat.encode.Decimal64;
 import org.decimal4j.dfloat.signal.Signal;
@@ -192,7 +192,7 @@ public final class Add {
         final int hiMSD = 1;// |hi|lo| = |1|x| becomes 1 after shift right
         if (exp < Decimal64.MAX_EXPONENT) {
             final long rsh = Shift.shiftRight(loMSD, sum10to50);
-            final int mod = Modulo.mod10(sum10to50);
+            final int mod = Rem.mod10(sum10to50);
             if (mod != 0) {
                 //inexact result
                 final RoundingDirection roundingDirection = attributes.getDecimalRoundingDirection();
@@ -258,7 +258,7 @@ public final class Add {
                         final RoundingDirection roundingDirection = attributes.getDecimalRoundingDirection();
                         final long sgn = a & Decimal64.SIGN_BIT_MASK;
                         if (roundingDirection.isRoundingIncrementPossible(sgn)) {
-                            final Remainder remainder = Modulo.remainderOfPow10(b, 15);
+                            final Remainder remainder = Rem.remainderOfPow10(b, 15);
                             if (remainder != Remainder.ZERO) {
                                 return roundAndSignalInexact(sgn, expA, msdA, s, remainder, roundingDirection, opMode, a, b, attributes);
                             }
@@ -283,7 +283,7 @@ public final class Add {
             if (msd > 0) {
                 if (msd <= 9) {
                     //result exponent is expA
-                    final Remainder remainder = Modulo.remainderOfPow10(b, expDiff);
+                    final Remainder remainder = Rem.remainderOfPow10(b, expDiff);
                     final long sgn = a & Decimal64.SIGN_BIT_MASK;
                     return roundIfNecessaryAndSignalInexact(sgn, expA, msd, dpd, remainder, opMode, a, b, attributes);
                 }
@@ -293,7 +293,7 @@ public final class Add {
                 final long sgn = a & Decimal64.SIGN_BIT_MASK;
                 if (expA < Decimal64.MAX_EXPONENT) {
                     final long rsh = Shift.shiftRight(loMSD, dpd);
-                    final Remainder remainder = Modulo.remainderOfPow10(loMSD, b, expDiff);
+                    final Remainder remainder = Rem.remainderOfPow10(loMSD, b, expDiff);
                     return roundIfNecessaryAndSignalInexact(sgn, expA + 1, hiMSD, rsh, remainder, opMode, a, b, attributes);
                 }
                 //exponent overflow
@@ -326,7 +326,7 @@ public final class Add {
                 msdS = msdA;
                 expS = expA;
                 expD = expDiff;
-                modS = Modulo.mod10(s);
+                modS = Rem.mod10(s);
             }
             final long sign = a & Decimal64.SIGN_BIT_MASK;
             if (!isZero(msdB, b)) {
@@ -353,7 +353,7 @@ public final class Add {
         final long hi = Shift.shiftLeft(dpdHi, shift);
         final long lo = Shift.shiftRight(dpdLo, 15-shift);
         final long s = Dpd.add(hi, lo);//no overflow possible (it is logically an or, not an add)
-        final Remainder remainder = Modulo.remainderOfPow10(dpdLo, 15 - shift);
+        final Remainder remainder = Rem.remainderOfPow10(dpdLo, 15 - shift);
         return roundIfNecessaryAndSignalInexact(sgn, exp - shift, msdS, s, remainder, opMode, a, b, attributes);
     }
 
@@ -382,7 +382,7 @@ public final class Add {
     private static long roundAndSignalInexact(final long sign, final int exp, final int msd, final long dpd,
                                               final Remainder remainder, final RoundingDirection roundingDirection,
                                               final OpMode opMode, final long a, final long b, final Attributes attributes) {
-        final int lsd = Modulo.mod10(dpd);
+        final int lsd = Rem.mod10(dpd);
         final int inc = roundingDirection.getRoundingIncrement(sign, lsd, remainder);
         if (inc > 0) {
             return incRoundingAndSignalInexact(sign, exp, msd, dpd, opMode, a, b, attributes);

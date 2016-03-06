@@ -27,10 +27,10 @@ import org.decimal4j.dfloat.ops.Remainder;
 
 import java.io.IOException;
 
-public final class Modulo {
+public final class Rem {
 
-	private Modulo() {
-		throw new RuntimeException("No Modulo for you!");
+	private Rem() {
+		throw new RuntimeException("No Rem for you!");
 	}
 
 	public static final int mod10(final long dpd) {

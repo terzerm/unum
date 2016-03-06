@@ -36,7 +36,7 @@ import java.io.IOException;
 public final class Declet {
 
 	private Declet() {
-		throw new RuntimeException("No Dpd for you!");
+		throw new RuntimeException("No Declet for you!");
 	}
 
 	/** 3 decimal digits, 1000 values */
@@ -96,10 +96,6 @@ public final class Declet {
 
 	public static final int compare(final int dpdA, final int dpdB) {
 		return DPD_TO_INT[dpdA] - DPD_TO_INT[dpdB];
-	}
-
-	public static final boolean isZero(final long dpd) {
-		return 0 == (dpd & Decimal64.COEFF_CONT_MASK);
 	}
 
 }
