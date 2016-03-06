@@ -24,10 +24,8 @@
 package org.decimal4j.dfloat.encode.other;
 
 import static org.decimal4j.dfloat.encode.other.DpdFunctions.invert;
-import static org.decimal4j.dfloat.encode.other.DpdFunctions.max;
-import static org.decimal4j.dfloat.encode.other.DpdFunctions.min;
 
-import org.decimal4j.dfloat.encode.Dpd;
+import org.decimal4j.dfloat.dpd.Dpd;
 import org.decimal4j.dfloat.encode.Encoding;
 
 /**
@@ -38,8 +36,8 @@ public class DpdPrinter {
 	public static void main(String[] args) {
 //		printArray(0, 1000, DpdGates.ENCODING);
 //		printArray(0, 1000, Dpd.ENCODING);
-		printArray(0, 1024, invert(0, 1000, DpdGates.ENCODING));
-		printArray(0, 1024, DpdFunctions.invert(0, 1000, Dpd.ENCODING));
+//		printArray(0, 1024, invert(0, 1000, DpdGates.ENCODING));
+//		printArray(0, 1024, DpdFunctions.invert(0, 1000, Dpd.ENCODING));
 //		printWikiSample(DpdGates.ENCODING);
 //		printWikiSample(Dpd.ENCODING);
 	}

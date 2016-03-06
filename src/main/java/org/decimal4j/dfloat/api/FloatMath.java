@@ -24,11 +24,9 @@
 package org.decimal4j.dfloat.api;
 
 import org.decimal4j.dfloat.encode.Decimal64;
-import org.decimal4j.dfloat.encode.Dpd;
 import org.decimal4j.dfloat.ops.Add;
 import org.decimal4j.dfloat.ops.Sign;
 import org.decimal4j.dfloat.ops.Sub;
-import org.decimal4j.dfloat.signal.Signal;
 
 public final class FloatMath {
 

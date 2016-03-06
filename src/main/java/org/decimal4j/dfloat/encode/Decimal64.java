@@ -23,12 +23,16 @@
  */
 package org.decimal4j.dfloat.encode;
 
-import org.decimal4j.dfloat.ops.Sign;
+import org.decimal4j.dfloat.dpd.Dpd;
 
 /**
  * Encoding implementing the IEEE 754-2008 Decimal 64 Interchange format.
  */
 public class Decimal64 {
+
+	private Decimal64() {
+		throw new RuntimeException("No Decimal64 for you!");
+	}
 
 	public static final int MAX_PRECISION = 16; /* maximum precision (digits) */
 	public static final int MAX_EXPONENT = 384; /* maximum adjusted exponent */
@@ -93,9 +97,6 @@ public class Decimal64 {
 			  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 9, 8, 9, 0, 0,
 			  0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7,
 			  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 9, 8, 9, 0, 0};
-
-	private static final int[] DECCOMBMSD_E6 = Dpd.initIntMultiple(DECCOMBMSD, 1000000);
-	private static final long[] DECCOMBMSD_E16 = Dpd.initLongMultiple(DECCOMBMSD, 1000000000000000L);
 
 	/** DECCOMBFROM is indexed by expTopTwoBits*16 + msd */
 	private static final long[] DECCOMBFROM = {
@@ -211,22 +212,5 @@ public class Decimal64 {
 	private static final int getMantissaBitsMSD(final long dpd) {
 		return (int)(dpd >>> (26+32));
 	}
-
-	public static long getMantissaAsLong(final long dpd) {
-		return DECCOMBMSD_E16[getMantissaBitsMSD(dpd)] + Dpd.dpdToLong(dpd);
-	}
-
-	public static int getMantissaAsLongLowBits(final long dpd) {
-		return Dpd.dpdToSignificandLo(dpd);
-	}
-
-	public static int getMantissaAsLongHighBits(final long dpd) {
-		return DECCOMBMSD_E6[getMantissaBitsMSD(dpd)] + Dpd.dpdToSignificandHi(dpd);
-	}
-
-	private Decimal64() {
-		throw new RuntimeException("no Decimal64 for you!");
-	}
-
 
 }
