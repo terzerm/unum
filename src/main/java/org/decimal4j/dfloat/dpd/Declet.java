@@ -86,7 +86,7 @@ public final class Declet {
 	//PREDONDITION: dec <= 1000
 	public static final int dec(final int dpd, int dec) {
 		final int sum = DPD_TO_INT[dpd] - dec;
-		return sum >= 1000 ? INT_TO_DPD[sum] : (1<<10) | INT_TO_DPD[sum+1000];
+		return sum >= 0 ? INT_TO_DPD[sum] : (1<<10) | INT_TO_DPD[sum+1000];
 	}
 
 	public static final int add(final int dpdA, final int dpdB, int carry) {

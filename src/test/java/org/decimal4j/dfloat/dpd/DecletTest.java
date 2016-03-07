@@ -23,10 +23,15 @@
  */
 package org.decimal4j.dfloat.dpd;
 
+import org.junit.Assert;
 import org.junit.Test;
+import org.junit.matchers.JUnitMatchers;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 
 public class DecletTest {
@@ -84,6 +89,81 @@ public class DecletTest {
             }
         }
     }
+
+    @Test
+    public void dec() {
+        for (int dpd = 0; dpd < 1024; dpd++) {
+            for (int dec = 0; dec < 1000; dec++) {
+                final int actual = Declet.dec(dpd, dec);
+
+                final int val = Declet.dpdToInt(dpd);
+                final int diff = val - dec;
+                final int expected = diff >= 0 ? Declet.intToDpd(diff) : (1<<10) | Declet.intToDpd(diff + 1000);
+                assertEquals("dec(" + dpd + ", " + dec + ")", expected, actual);
+            }
+        }
+    }
+
+    @Test
+    public void add() {
+        for (int dpd1 = 0; dpd1 < 1024; dpd1++) {
+            for (int dpd2 = 0; dpd2 < 1024; dpd2++) {
+                for (int carry = 0; carry <= 1; carry++) {
+                    final int actual = Declet.add(dpd1, dpd2, carry);
+
+                    final int val1 = Declet.dpdToInt(dpd1);
+                    final int val2 = Declet.dpdToInt(dpd2);
+                    final int diff = val1 + val2 + carry;
+                    final int expected = diff < 1000 ? Declet.intToDpd(diff) : (1<<10) | Declet.intToDpd(diff - 1000);
+                    assertEquals("add(" + dpd1 + ", " + dpd2 + ", " + carry + ")", expected, actual);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void sub() {
+        for (int dpd1 = 0; dpd1 < 1024; dpd1++) {
+            for (int dpd2 = 0; dpd2 < 1024; dpd2++) {
+                for (int carry = 0; carry <= 1; carry++) {
+                    final int actual = Declet.sub(dpd1, dpd2, carry);
+
+                    final int val1 = Declet.dpdToInt(dpd1);
+                    final int val2 = Declet.dpdToInt(dpd2);
+                    final int diff = val1 - val2 - carry;
+                    final int expected = diff >= 0 ? Declet.intToDpd(diff) : (1<<10) | Declet.intToDpd(diff + 1000);
+                    assertEquals("sub(" + dpd1 + ", " + dpd2 + ", " + carry + ")", expected, actual);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void compare() {
+        for (int dpd1 = 0; dpd1 < 1024; dpd1++) {
+            final int val1 = Declet.dpdToInt(dpd1);
+            for (int dpd2 = 0; dpd2 < 1024; dpd2++) {
+                final int val2 = Declet.dpdToInt(dpd2);
+                final int actual = Declet.compare(dpd1, dpd2);
+                final int expected = Integer.compare(val1, val2);
+
+                assertEquals("compare(" + dpd1 + ", " + dpd2 + ")", Integer.signum(expected), Integer.signum(actual));
+            }
+        }
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void newInstance() throws Throwable {
+        final Constructor<Declet> c = Declet.class.getDeclaredConstructor();
+        c.setAccessible(true);
+        try {
+            c.newInstance();
+        } catch (InvocationTargetException e) {
+            Assert.assertThat(e.getTargetException().getMessage(), containsString(Declet.class.getSimpleName()));
+            throw e.getTargetException();
+        }
+    }
+
     /**
      * Converts 3 integer digits digits to DPD.
      *
