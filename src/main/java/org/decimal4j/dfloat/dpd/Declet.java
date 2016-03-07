@@ -71,19 +71,22 @@ public final class Declet {
 	}
 
 	public static final boolean isCanonical(final int dpd) {
-		return dpd < 1000;
+		//non-canonical patterns: 01x11x111x, 10x11x111x, or 11x11x111x
+		//0x300 = 1100000000
+		//0x06e = 0001101110
+		return ((dpd & 0x300) == 0) | ((dpd & 0x06e) != 0x06e);
 	}
 
 	//PREDONDITION: inc <= 1000
 	public static final int inc(final int dpd, int inc) {
 		final int sum = DPD_TO_INT[dpd] + inc;
-		return sum < 1000 ? INT_TO_DPD[sum] : (1<<11) | INT_TO_DPD[sum-1000];
+		return sum < 1000 ? INT_TO_DPD[sum] : (1<<10) | INT_TO_DPD[sum-1000];
 	}
 
 	//PREDONDITION: dec <= 1000
 	public static final int dec(final int dpd, int dec) {
 		final int sum = DPD_TO_INT[dpd] - dec;
-		return sum >= 1000 ? INT_TO_DPD[sum] : (1<<11) | INT_TO_DPD[sum+1000];
+		return sum >= 1000 ? INT_TO_DPD[sum] : (1<<10) | INT_TO_DPD[sum+1000];
 	}
 
 	public static final int add(final int dpdA, final int dpdB, int carry) {
