@@ -23,118 +23,67 @@
  */
 package org.decimal4j.dfloat.dpd;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import junitparams.naming.TestCaseName;
-import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-@RunWith(JUnitParamsRunner.class)
 public class DecletTest {
 
-    private static final List<Integer> NON_CANONICALS = Arrays.asList(366, 367, 382, 383, 494, 495, 510, 511, 622, 623, 638, 639, 750, 751, 766, 767, 878, 879, 894, 895, 1006, 1007, 1022, 1023);
-    private static final List<Integer> REP_CANONICALS = Arrays.asList(110, 111, 126, 127, 238, 239, 254, 255, 110, 111, 126, 127, 238, 239, 254, 255, 110, 111, 126, 127, 238, 239, 254, 255);
+    private static final int[] NON_CANONICALS = new int[] {366, 367, 382, 383, 494, 495, 510, 511, 622, 623, 638, 639, 750, 751, 766, 767, 878, 879, 894, 895, 1006, 1007, 1022, 1023};
+    private static final int[] REP_CANONICALS = new int[] {110, 111, 126, 127, 238, 239, 254, 255, 110, 111, 126, 127, 238, 239, 254, 255, 110, 111, 126, 127, 238, 239, 254, 255};
 
     @Test
-    @Parameters(method = "dpdValues")
-    @TestCaseName("{method}({0})")
-    public void isCanonical(final int a) {
-        final boolean expected = !NON_CANONICALS.contains(a);
-        assertEquals("isCanonical(" + a + ")", expected, Declet.isCanonical(a));
+    public void isCanonical() {
+        for (int dpd = 0; dpd < 1024; dpd++) {
+            final boolean expected = Arrays.binarySearch(NON_CANONICALS, dpd) < 0;
+            assertEquals("isCanonical(" + dpd + ")", expected, Declet.isCanonical(dpd));
+        }
     }
 
     @Test
-    @Parameters(method = "dpdValues")
-    @TestCaseName("{method}({0})")
-    public void canonicalize(final int a) {
-        final int i = Collections.binarySearch(NON_CANONICALS, a);
-        final int expected = i < 0 ? a : REP_CANONICALS.get(i);
-        assertEquals("canonicalize(" + a + ")", expected, Declet.canonicalize(a));
+    public void canonicalize() {
+        for (int dpd = 0; dpd < 1024; dpd++) {
+            final int i = Arrays.binarySearch(NON_CANONICALS, dpd);
+            final int expected = i < 0 ? dpd : REP_CANONICALS[i];
+            assertEquals("canonicalize(" + dpd + ")", expected, Declet.canonicalize(dpd));
+        }
     }
 
     @Test
-    @Parameters(method = "dpdValues")
-    @TestCaseName("{method}({0})")
-    public void dpdToInt(final int a) {
-        final int actual = Declet.dpdToInt(a);
-
-        final int i = Collections.binarySearch(NON_CANONICALS, a);
-        final int expected = i < 0 ? a : REP_CANONICALS.get(i);
-//        final int expected = intDigitsToDpd(a / 100, (a / 10) % 10, a % 10);
-//        assertEquals("dpdToInt(" + a + ")", expected, actual);
-        assertEquals("intToDpd(dpdToInt(" + a + "))", expected, Declet.intToDpd(Declet.dpdToInt(a)));
+    public void dpdToInt() {
+        for (int dpd = 0; dpd < 1024; dpd++) {
+            final int i = Arrays.binarySearch(NON_CANONICALS, dpd);
+            final int expected = i < 0 ? dpd : REP_CANONICALS[i];
+            assertEquals("intToDpd(dpdToInt(" + dpd + "))", expected, Declet.intToDpd(Declet.dpdToInt(dpd)));
+        }
     }
 
     @Test
-    @Parameters(method = "intValues")
-    @TestCaseName("{method}({0})")
-    public void intToDpd(final int a) {
-        final int actual = Declet.intToDpd(a);
+    public void intToDpd() {
+        for (int ival = 0; ival < 1000; ival++) {
+            final int actual = Declet.intToDpd(ival);
 
-        final int expected = intDigitsToDpd(a / 100, (a / 10) % 10, a % 10);
-        assertEquals("intToDpd(" + a + ")", expected, actual);
-        assertEquals("dpdToInt(intToDpd(" + a + "))", a, Declet.dpdToInt(actual));
+            final int expected = intDigitsToDpd(ival / 100, (ival / 10) % 10, ival % 10);
+            assertEquals("intToDpd(" + ival + ")", expected, actual);
+            assertEquals("dpdToInt(intToDpd(" + ival + "))", ival, Declet.dpdToInt(actual));
+        }
     }
 
     @Test
-    @Parameters(method = "dpdIntValues")
-    @TestCaseName("{method}({0},{1})")
-    public void inc(final int a, final int b) {
-        final int actual = Declet.inc(a, b);
+    public void inc() {
+        for (int dpd = 0; dpd < 1024; dpd++) {
+            for (int inc = 0; inc < 1000; inc++) {
+                final int actual = Declet.inc(dpd, inc);
 
-        final int valA = Declet.dpdToInt(a);
-        final int sum = valA + b;
-        final int expected = sum < 1000 ? Declet.intToDpd(sum) : (1<<10) | Declet.intToDpd(sum - 1000);
-        assertEquals("inc(" + a + ", " + b + ")", expected, actual);
-    }
-
-    public Object[] dpdIntValues() {
-        final List<Object[]> values = new ArrayList<Object[]>();
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                values.add(new Object[] {i, j});
-                values.add(new Object[] {j, i});
+                final int val = Declet.dpdToInt(dpd);
+                final int sum = val + inc;
+                final int expected = sum < 1000 ? Declet.intToDpd(sum) : (1<<10) | Declet.intToDpd(sum - 1000);
+                assertEquals("inc(" + dpd + ", " + inc + ")", expected, actual);
             }
         }
-        for (int i = 0; i < 1000; i+=99) {
-            for (int j = 0; j < 1000; j+=97) {
-                values.add(new Object[] {i, j});
-                values.add(new Object[] {j, i});
-            }
-        }
-        for (int i = 990; i < 1000; i++) {
-            for (int j = 0; j < 10; j++) {
-                values.add(new Object[] {i, j});
-                values.add(new Object[] {j, i});
-            }
-        }
-        return values.toArray();
     }
-
-    public Object[] intValues() {
-        final List<Object[]> values = new ArrayList<Object[]>();
-        for (int i = 0; i < 1000; i++) {
-            values.add(new Object[] {i});
-        }
-        return values.toArray();
-    }
-
-    public Object[] dpdValues() {
-        final List<Object[]> values = new ArrayList<Object[]>();
-        for (int i = 0; i < 1024; i++) {
-            values.add(new Object[] {i});
-        }
-        return values.toArray();
-    }
-
     /**
      * Converts 3 integer digits digits to DPD.
      *
