@@ -23,6 +23,7 @@
  */
 package org.decimal4j.dfloat.dpd;
 
+import org.decimal4j.dfloat.encode.Decimal64;
 import org.decimal4j.dfloat.ops.Remainder;
 
 import java.io.IOException;
@@ -35,37 +36,25 @@ public final class Rem {
 
 	public static final int mod10(final long dpd) {
 		final int declet = Declet.dpdToInt((int)(dpd & 0x3ff));
-		return Digit.decletToCharDigit(declet, 0) - '0';
+		return Digit.decletToCharDigit(declet, 2) - '0';
 	}
 
 	//PRECONDITION: n>0
 	public static final Remainder remainderOfPow10(final long dpd, final int n) {
-		final char msd = Digit.dpdToCharDigit(dpd, n - 1);
-		if (msd > '5') return Remainder.GREATER_THAN_HALF;
-		if (msd > '0' & msd < '5') return Remainder.GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
-		final Remainder atLeast, atMost;
-		if (msd == '0') {
-			atLeast = Remainder.ZERO;
-			atMost = Remainder.GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
-		} else {
-			//digit == 5
-			atLeast = Remainder.EQUAL_TO_HALF;
-			atMost = Remainder.GREATER_THAN_HALF;
-		}
-		for (int i = 0; i < n-1; i++) {
-			if (Digit.dpdToCharDigit(dpd, i) != '0') {
-				return atMost;
-			}
-		}
-		return atLeast;
+		final int msd = Digit.dpdToCharDigit(dpd, 15 - n) - '0';
+		return remainderOfPow10(msd, 15 - n + 1, dpd);
 	}
 
 	//PRECONDITION: n>0
 	public static final Remainder remainderOfPow10(final int msd, final long dpd, final int n) {
-		if (msd > '5') return Remainder.GREATER_THAN_HALF;
-		if (msd > '0' & msd < '5') return Remainder.GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
+		return remainderOfPow10(msd, 15 - n, dpd);
+	}
+
+	private static final Remainder remainderOfPow10(final int msd, final int offset, final long dpd) {
+		if (msd > 5) return Remainder.GREATER_THAN_HALF;
+		if (msd > 0 & msd < 5) return Remainder.GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
 		final Remainder atLeast, atMost;
-		if (msd == '0') {
+		if (msd == 0) {
 			atLeast = Remainder.ZERO;
 			atMost = Remainder.GREATER_THAN_ZERO_BUT_LESS_THAN_HALF;
 		} else {
@@ -73,12 +62,16 @@ public final class Rem {
 			atLeast = Remainder.EQUAL_TO_HALF;
 			atMost = Remainder.GREATER_THAN_HALF;
 		}
-		for (int i = 0; i < n; i++) {
+		int deci = 12;
+		for (int shift = 0; deci >= offset; deci-=3, shift+=10) {
+			final long declet = (dpd >>> shift) & 0x3ff;
+			if (declet != 0) return atMost;
+		}
+		for (int i = deci + 3; i >= offset; i--) {
 			if (Digit.dpdToCharDigit(dpd, i) != '0') {
 				return atMost;
 			}
 		}
 		return atLeast;
 	}
-
 }

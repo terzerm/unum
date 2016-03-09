@@ -79,14 +79,18 @@ public final class Declet {
 
 	//PREDONDITION: inc <= 1000
 	public static final int inc(final int dpd, int inc) {
-		final int sum = DPD_TO_INT[dpd] + inc;
-		return sum < 1000 ? INT_TO_DPD[sum] : (1<<10) | INT_TO_DPD[sum-1000];
+//		final int sum = DPD_TO_INT[dpd] + inc;
+////		return sum < 1000 ? INT_TO_DPD[sum] : (1<<10) | INT_TO_DPD[sum-1000];
+//		return ((1<<10) & (sum+24)) | INT_TO_DPD[sum - (1000 & ((999-sum)>>31))];
+		final int sum = 999 - DPD_TO_INT[dpd] - inc;
+		return ((1<<10) & (sum>>31)) | INT_TO_DPD[999 - sum - (1000 & (sum>>31))];
 	}
 
 	//PREDONDITION: dec <= 1000
 	public static final int dec(final int dpd, int dec) {
 		final int sum = DPD_TO_INT[dpd] - dec;
-		return sum >= 0 ? INT_TO_DPD[sum] : (1<<10) | INT_TO_DPD[sum+1000];
+//		return sum >= 0 ? INT_TO_DPD[sum] : (1<<10) | INT_TO_DPD[sum+1000];
+		return ((1<<10) & (sum>>31)) | INT_TO_DPD[sum + (1000 & (sum>>31))];
 	}
 
 	public static final int add(final int dpdA, final int dpdB, int carry) {
