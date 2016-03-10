@@ -194,6 +194,17 @@ public class DpdTest {
             assertEquals("compare(" + a + ", " + b + ")", Long.signum(c), Long.signum(Dpd.compare(a, b)));
             assertEquals("compare(" + b + ", " + a + ")", -Long.signum(c), Long.signum(Dpd.compare(b, a)));
         }
+        assertEquals("compare(" + intsToDpd(1, 1, 1, 1, 1) + ", " + intsToDpd(1, 1, 1, 1, 1) + ")", +0, Long.signum(Dpd.compare(intsToDpd(1, 1, 1, 1, 1), intsToDpd(1, 1, 1, 1, 1))));
+        assertEquals("compare(" + intsToDpd(1, 1, 1, 1, 1) + ", " + intsToDpd(1, 1, 1, 1, 2) + ")", -1, Long.signum(Dpd.compare(intsToDpd(1, 1, 1, 1, 1), intsToDpd(1, 1, 1, 1, 2))));
+        assertEquals("compare(" + intsToDpd(1, 1, 1, 1, 2) + ", " + intsToDpd(1, 1, 1, 1, 1) + ")", +1, Long.signum(Dpd.compare(intsToDpd(1, 1, 1, 1, 2), intsToDpd(1, 1, 1, 1, 1))));
+        assertEquals("compare(" + intsToDpd(1, 1, 1, 1, 1) + ", " + intsToDpd(1, 1, 1, 3, 1) + ")", -1, Long.signum(Dpd.compare(intsToDpd(1, 1, 1, 1, 1), intsToDpd(1, 1, 1, 3, 1))));
+        assertEquals("compare(" + intsToDpd(1, 1, 1, 3, 1) + ", " + intsToDpd(1, 1, 1, 1, 1) + ")", +1, Long.signum(Dpd.compare(intsToDpd(1, 1, 1, 3, 1), intsToDpd(1, 1, 1, 1, 1))));
+        assertEquals("compare(" + intsToDpd(1, 1, 1, 1, 1) + ", " + intsToDpd(1, 1, 4, 1, 1) + ")", -1, Long.signum(Dpd.compare(intsToDpd(1, 1, 1, 1, 1), intsToDpd(1, 1, 4, 1, 1))));
+        assertEquals("compare(" + intsToDpd(1, 1, 4, 1, 1) + ", " + intsToDpd(1, 1, 1, 1, 1) + ")", +1, Long.signum(Dpd.compare(intsToDpd(1, 1, 4, 1, 1), intsToDpd(1, 1, 1, 1, 1))));
+        assertEquals("compare(" + intsToDpd(1, 1, 1, 1, 1) + ", " + intsToDpd(1, 5, 1, 1, 1) + ")", -1, Long.signum(Dpd.compare(intsToDpd(1, 1, 1, 1, 1), intsToDpd(1, 5, 1, 1, 1))));
+        assertEquals("compare(" + intsToDpd(1, 5, 1, 1, 1) + ", " + intsToDpd(1, 1, 1, 1, 1) + ")", +1, Long.signum(Dpd.compare(intsToDpd(1, 5, 1, 1, 1), intsToDpd(1, 1, 1, 1, 1))));
+        assertEquals("compare(" + intsToDpd(1, 1, 1, 1, 1) + ", " + intsToDpd(6, 1, 1, 1, 1) + ")", -1, Long.signum(Dpd.compare(intsToDpd(1, 1, 1, 1, 1), intsToDpd(6, 1, 1, 1, 1))));
+        assertEquals("compare(" + intsToDpd(6, 1, 1, 1, 1) + ", " + intsToDpd(1, 1, 1, 1, 1) + ")", +1, Long.signum(Dpd.compare(intsToDpd(6, 1, 1, 1, 1), intsToDpd(1, 1, 1, 1, 1))));
     }
 
     @Test
