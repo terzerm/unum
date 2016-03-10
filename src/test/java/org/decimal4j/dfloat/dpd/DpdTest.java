@@ -37,6 +37,8 @@ import static org.junit.Assert.assertEquals;
 
 public class DpdTest {
 
+    private static final Random RND = new Random();
+
     @Test
     public void isCanonical() {
         for (int dpd = 0; dpd < 1024; dpd++) {
@@ -146,6 +148,92 @@ public class DpdTest {
         assertEquals("dec(" + intsToDpd(000, 000, 000, 000, 111) + ", 223)", (1L<<50) | intsToDpd(999, 999, 999, 999, 888), Dpd.dec(intsToDpd(000, 000, 000, 000, 111), 223));
     }
 
+    @Test
+    public void add() {
+        for (int i = 0; i < 100000; i++) {
+            final long a = RandomDpd.randomDpd();
+            final long b = RandomDpd.randomDpd();
+            final long s = dpdToLong(a) + dpdToLong(b);
+            final long exp = s < 1000000000000000L ? longToDpd(s) : (1L<<50) | longToDpd(s - 1000000000000000L);
+            assertEquals("add(" + a + ", " + b + ")", exp, Dpd.add(a, b));
+        }
+        assertEquals("add(" + longToDpd(999999999999999L) + ", " + longToDpd(1L) + ")",
+                (1L<<50) | longToDpd(0),
+                Dpd.add(longToDpd(999999999999999L), longToDpd(1)));
+        assertEquals("add(" + longToDpd(999999999999999L) + ", " + longToDpd(999999999999999L) + ")",
+                (1L<<50) | longToDpd(999999999999998L),
+                Dpd.add(longToDpd(999999999999999L), longToDpd(999999999999999L)));
+    }
+
+    @Test
+    public void sub() {
+        for (int i = 0; i < 100000; i++) {
+            final long a = RandomDpd.randomDpd();
+            final long b = RandomDpd.randomDpd();
+            final long d = dpdToLong(a) - dpdToLong(b);
+            final long exp = d >= 0 ? longToDpd(d) : (1L<<50) | longToDpd(d + 1000000000000000L);
+            assertEquals("sub(" + a + ", " + b + ")", exp, Dpd.sub(a, b));
+        }
+        assertEquals("sub(" + longToDpd(1L) + ", " + longToDpd(2L) + ")",
+                (1L<<50) | longToDpd(999999999999999L),
+                Dpd.sub(longToDpd(1L), longToDpd(2L)));
+        assertEquals("sub(" + longToDpd(1) + ", " + longToDpd(999999999999999L) + ")",
+                (1L<<50) | longToDpd(2L),
+                Dpd.sub(longToDpd(1), longToDpd(999999999999999L)));
+        assertEquals("sub(" + longToDpd(345L) + ", " + longToDpd(123456789012345L) + ")",
+                (1L<<50) | longToDpd(876543210988000L),
+                Dpd.sub(longToDpd(345L), longToDpd(123456789012345L)));
+    }
+
+    @Test
+    public void compare() {
+        for (int i = 0; i < 100000; i++) {
+            final long a = RandomDpd.randomDpd();
+            final long b = RandomDpd.randomDpd();
+            final long c = Long.compare(dpdToLong(a), dpdToLong(b));
+            assertEquals("compare(" + a + ", " + b + ")", Long.signum(c), Long.signum(Dpd.compare(a, b)));
+            assertEquals("compare(" + b + ", " + a + ")", -Long.signum(c), Long.signum(Dpd.compare(b, a)));
+        }
+    }
+
+    @Test
+    public void numberOfLeadingZeros() {
+        for (int i = 0; i < 10000; i++) {
+            for (int zeros = 0; zeros < 16; zeros++) {
+                final String s = "000000000000000" + Math.abs(RND.nextLong());
+                final long l = Long.valueOf("000000000000000".substring(0, zeros) + s.substring(s.length() - (15-zeros)));
+                final int trueZeros = l == 0 ? 15 : 15 - String.valueOf(l).length();
+                final long dpd = longToDpd(l);
+                assertEquals("numberOfLeadingZeros(" + l + ")", trueZeros, Dpd.numberOfLeadingZeros(dpd));
+            }
+        }
+    }
+
+    @Test
+    public void numberOfTrailingZeros() {
+        for (int i = 0; i < 10000; i++) {
+            for (int zeros = 0; zeros < 16; zeros++) {
+                final String s = (Math.abs(RND.nextLong()) + "000000000000000");
+                final long l = Long.valueOf(s.substring(s.length() - 15));
+                final int trueZeros = l == 0 ? 15 : 15 - reverse(String.valueOf(l)).length();
+                final long dpd = longToDpd(l);
+                assertEquals("numberOfTrailingZeros(" + l + ")", trueZeros, Dpd.numberOfTrailingZeros(dpd));
+            }
+        }
+    }
+
+    @Test
+    public void isZero() {
+        assertEquals("isZero(" + 0 + ")", true, Dpd.isZero(0));
+        for (int i = 0; i < 50; i++) {
+            final long dpd = 1L << i;
+            assertEquals("isZero(" + dpd + ")", false, Dpd.isZero(dpd));
+        }
+        for (int i = 50; i < 64; i++) {
+            final long dpd = 1L << i;
+            assertEquals("isZero(" + dpd + ")", true, Dpd.isZero(dpd));
+        }
+    }
 
     @Test(expected = RuntimeException.class)
     public void newInstance() throws Throwable {
@@ -157,5 +245,18 @@ public class DpdTest {
     }
     private static final long dpd(final int declet0, final int declet1, final int declet2, final int declet3, final int declet4) {
         return (((long)declet0) << 40) | (((long)declet1) << 30) | ((long)declet2 << 20) | (declet3 << 10) | declet4;
+    }
+    private static final long dpdToLong(final long a) {
+        return 1000000000000L * Declet.dpdToInt((int)((a >>> 40) & 0x3ff)) +
+                1000000000L * Declet.dpdToInt((int)((a >>> 30) & 0x3ff)) +
+                1000000L * Declet.dpdToInt((int)((a >>> 20) & 0x3ff)) +
+                1000L * Declet.dpdToInt((int)((a >>> 10) & 0x3ff)) +
+                Declet.dpdToInt((int)(a & 0x3ff));
+    }
+    private static final long longToDpd(final long a) {
+        return intsToDpd((int)((a / 1000000000000L) % 1000), (int)((a / 1000000000L) % 1000), (int)((a / 1000000L) % 1000), (int)((a / 1000L) % 1000), (int)(a % 1000));
+    }
+    private static final String reverse(final String s) {
+        return new StringBuilder(s).reverse().toString();
     }
 }

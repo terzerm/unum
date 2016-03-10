@@ -60,8 +60,7 @@ public class Dpd {
 				((sum20 & 0x3ffL) << 10) |
 				((sum30 & 0x3ffL) << 20) |
 				((sum40 & 0x3ffL) << 30) |
-				((sum50 & 0x3ffL) << 40) |
-				((sum50 & 0x400L) << 50);
+				((sum50 & 0x7ffL) << 40);
 	}
 
 	public static long inc(final long dpd) {
@@ -126,16 +125,15 @@ public class Dpd {
 
 	public static long sub(final long dpdA, final long dpdB) {
 		final int sub10 = Declet.sub((int)(dpdA & 0x3ff), (int)(dpdB & 0x3ff), 0);
-		final int sub20 = Declet.sub((int)((dpdA >>> 10) & 0x3ff), (int)((dpdB >> 10) & 0x3ff), sub10 >>> 10);
-		final int sub30 = Declet.sub((int)((dpdA >>> 20) & 0x3ff), (int)((dpdB >> 20) & 0x3ff), sub20 >>> 10);
-		final int sub40 = Declet.sub((int)((dpdA >>> 30) & 0x3ff), (int)((dpdB >> 30) & 0x3ff), sub30 >>> 10);
-		final int sub50 = Declet.sub((int)((dpdA >>> 40) & 0x3ff), (int)((dpdB >> 40) & 0x3ff), sub40 >>> 10);
+		final int sub20 = Declet.sub((int)((dpdA >>> 10) & 0x3ff), (int)((dpdB >>> 10) & 0x3ff), sub10 >>> 10);
+		final int sub30 = Declet.sub((int)((dpdA >>> 20) & 0x3ff), (int)((dpdB >>> 20) & 0x3ff), sub20 >>> 10);
+		final int sub40 = Declet.sub((int)((dpdA >>> 30) & 0x3ff), (int)((dpdB >>> 30) & 0x3ff), sub30 >>> 10);
+		final int sub50 = Declet.sub((int)((dpdA >>> 40) & 0x3ff), (int)((dpdB >>> 40) & 0x3ff), sub40 >>> 10);
 		return (sub10 & 0x3ffL) |
 				((sub20 & 0x3ffL) << 10) |
 				((sub30 & 0x3ffL) << 20) |
 				((sub40 & 0x3ffL) << 30) |
-				((sub50 & 0x3ffL) << 40) |
-				((sub50 & 0x400L) << 50);
+				((sub50 & 0x7ffL) << 40);
 	}
 
 	public static int compare(final long dpdA, final long dpdB) {
