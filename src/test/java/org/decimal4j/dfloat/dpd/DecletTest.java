@@ -36,8 +36,8 @@ import static org.junit.Assert.assertEquals;
 
 public class DecletTest {
 
-    private static final int[] NON_CANONICALS = new int[] {366, 367, 382, 383, 494, 495, 510, 511, 622, 623, 638, 639, 750, 751, 766, 767, 878, 879, 894, 895, 1006, 1007, 1022, 1023};
-    private static final int[] REP_CANONICALS = new int[] {110, 111, 126, 127, 238, 239, 254, 255, 110, 111, 126, 127, 238, 239, 254, 255, 110, 111, 126, 127, 238, 239, 254, 255};
+    static final int[] NON_CANONICALS = new int[] {366, 367, 382, 383, 494, 495, 510, 511, 622, 623, 638, 639, 750, 751, 766, 767, 878, 879, 894, 895, 1006, 1007, 1022, 1023};
+    static final int[] REP_CANONICALS = new int[] {110, 111, 126, 127, 238, 239, 254, 255, 110, 111, 126, 127, 238, 239, 254, 255, 110, 111, 126, 127, 238, 239, 254, 255};
 
     @Test
     public void isCanonical() {
@@ -152,16 +152,35 @@ public class DecletTest {
         }
     }
 
+    @Test
+    public void numberOfLeadingZeros() {
+        for (int dpd = 0; dpd < 1024; dpd++) {
+            final int val = Declet.dpdToInt(dpd);
+            final int nlz = val == 0 ? 3 : 3 - String.valueOf(val).length();
+            assertEquals("numberOfLeadingZeros(" + dpd + ")", nlz, Declet.numberOfLeadingZeros(dpd));
+        }
+    }
+
+    @Test
+    public void numberOfTrailingZeros() {
+        for (int dpd = 0; dpd < 1024; dpd++) {
+            final int val = Declet.dpdToInt(dpd);
+            int ntz;
+            if (val == 0) {
+                ntz = 3;
+            } else {
+                final String s = String.valueOf(val);
+                ntz = s.charAt(s.length() - 1) == '0' ? 1 : 0;
+                ntz += ntz == 1 && s.length() > 1 && s.charAt(s.length() - 2) == '0' ? 1 : 0;
+                ntz += ntz == 2 && s.length() > 2 && s.charAt(s.length() - 3) == '0' ? 1 : 0;
+            }
+            assertEquals("numberOfTrailingZeros(" + dpd + ")", ntz, Declet.numberOfTrailingZeros(dpd));
+        }
+    }
+
     @Test(expected = RuntimeException.class)
     public void newInstance() throws Throwable {
-        final Constructor<Declet> c = Declet.class.getDeclaredConstructor();
-        c.setAccessible(true);
-        try {
-            c.newInstance();
-        } catch (InvocationTargetException e) {
-            Assert.assertThat(e.getTargetException().getMessage(), containsString(Declet.class.getSimpleName()));
-            throw e.getTargetException();
-        }
+        Instance.notAllowed(Declet.class);
     }
 
     /**

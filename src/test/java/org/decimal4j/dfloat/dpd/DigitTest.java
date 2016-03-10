@@ -32,8 +32,6 @@ import static org.junit.Assert.assertEquals;
 
 public class DigitTest {
 
-    private static final Random RND = new Random();
-
     @Test
     public void decletToDigit() {
         for (int dpd = 0; dpd < 1024; dpd++) {
@@ -51,41 +49,14 @@ public class DigitTest {
     }
 
     @Test
-    public void numberOfLeadingZeros() {
-        for (int dpd = 0; dpd < 1024; dpd++) {
-            final int val = Declet.dpdToInt(dpd);
-            final int nlz = val == 0 ? 3 : 3 - String.valueOf(val).length();
-            assertEquals("numberOfLeadingZeros(" + dpd + ")", nlz, Digit.numberOfLeadingZeros(dpd));
-        }
-    }
-
-    @Test
-    public void numberOfTrailingZeros() {
-        for (int dpd = 0; dpd < 1024; dpd++) {
-            final int val = Declet.dpdToInt(dpd);
-            int ntz;
-            if (val == 0) {
-                ntz = 3;
-            } else {
-                final String s = String.valueOf(val);
-                ntz = s.charAt(s.length() - 1) == '0' ? 1 : 0;
-                ntz += ntz == 1 && s.length() > 1 && s.charAt(s.length() - 2) == '0' ? 1 : 0;
-                ntz += ntz == 2 && s.length() > 2 && s.charAt(s.length() - 3) == '0' ? 1 : 0;
-            }
-            assertEquals("numberOfTrailingZeros(" + dpd + ")", ntz, Digit.numberOfTrailingZeros(dpd));
-        }
-    }
-
-    @Test
     public void dpdToCharDigit() {
         for (int dpd = 0; dpd < 1024; dpd++) {
-            final long fiveDeclets = RND.nextLong() & Decimal64.COEFF_CONT_MASK;
             final int val = Declet.dpdToInt(dpd);
             final int[] exp = {(val / 100) % 10, (val / 10) % 10, val % 10};
-            for (int shift = 0; shift < 50; shift += 10) {
-                final long dpd5 = fiveDeclets & (~(0x3ffL << shift)) | (((long)dpd) << shift);
+            for (int pos = 0; pos < 5; pos++) {
+                final long dpd5 = RandomDpd.randomDpd(dpd, pos);
                 for (int i = 0; i < 3; i++) {
-                    final int index = 12 - ((shift/10)*3) + i;
+                    final int index = 12 - (pos*3) + i;
                     assertEquals("dpdToCharDigit(" + dpd5 + ", " + index + ")", (char)(exp[i] + '0'), Digit.dpdToCharDigit(dpd5, index));
                 }
             }
@@ -103,5 +74,10 @@ public class DigitTest {
                 }
             }
         }
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void newInstance() throws Throwable {
+        Instance.notAllowed(Digit.class);
     }
 }

@@ -31,7 +31,7 @@ import org.decimal4j.dfloat.ops.Remainder;
 import java.io.IOException;
 
 /**
- * Densely packed digital encoding.
+ * Shift deals with left and right shifting of DPD encoded values.
  */
 public class Shift {
 

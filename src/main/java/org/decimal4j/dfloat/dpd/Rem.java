@@ -28,6 +28,9 @@ import org.decimal4j.dfloat.ops.Remainder;
 
 import java.io.IOException;
 
+/**
+ * Rem offers modulo and remainder operations for DPD encoded values.
+ */
 public final class Rem {
 
 	private Rem() {

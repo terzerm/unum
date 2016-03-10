@@ -25,6 +25,9 @@ package org.decimal4j.dfloat.dpd;
 
 import java.io.IOException;
 
+/**
+ * Digit deals with single digits and sequences of digits in DPD encoded values.
+ */
 public final class Digit {
 
 	private Digit() {
@@ -70,38 +73,6 @@ public final class Digit {
 	 */
 	public static final int decletToIntDigit(final int dpd, int i) {
 		return decletToCharDigit(dpd, i) - '0';
-	}
-
-	/**
-	 * Returns the number of leading zeros in a declet.
-	 * <p>
-	 * Examples: Returns 2 for a declet '003', 3 for '000' and 0 for '786'.
-	 *
-	 * @param dpd
-	 *            DPD value encoding 3 decimal digits
-	 * @return the number of leading zeroes in the 3 decimal digits, a value from 0 to 3.
-	 */
-	public static final int numberOfLeadingZeros(final int dpd) {
-		if (dpd == 0) return 3;
-		if (decletToCharDigit(dpd, 0) != '0') return 0;
-		if (decletToCharDigit(dpd, 1) != '0') return 1;
-		return 2;
-	}
-
-	/**
-	 * Returns the number of trailing zeros in a declet.
-	 * <p>
-	 * Examples: Returns 2 for a declet '700', 3 for '000' and 0 for '786'.
-	 *
-	 * @param dpd
-	 *            DPD value encoding 3 decimal digits
-	 * @return the number of leading zeroes in the 3 decimal digits, a value from 0 to 3.
-	 */
-	public static final int numberOfTrailingZeros(final int dpd) {
-		if (dpd == 0) return 3;
-		if (decletToCharDigit(dpd, 2) != '0') return 0;
-		if (decletToCharDigit(dpd, 1) != '0') return 1;
-		return 2;
 	}
 
 	/**
