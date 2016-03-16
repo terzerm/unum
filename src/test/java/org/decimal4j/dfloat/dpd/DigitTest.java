@@ -23,15 +23,18 @@
  */
 package org.decimal4j.dfloat.dpd;
 
+import junit.framework.Assert;
 import org.decimal4j.dfloat.encode.Decimal64;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 
 public class DigitTest {
 
+    private static final Random RND = new Random();
     @Test
     public void decletToDigit() {
         for (int dpd = 0; dpd < 1024; dpd++) {
@@ -60,6 +63,26 @@ public class DigitTest {
                     assertEquals("dpdToCharDigit(" + dpd5 + ", " + index + ")", (char)(exp[i] + '0'), Digit.dpdToCharDigit(dpd5, index));
                 }
             }
+        }
+    }
+
+    @Test
+    public void dpdToString() throws IOException {
+        final StringBuilder sb = new StringBuilder();
+        final int[] declets = new int[5];
+        final int[] intlets = new int[5];
+        for (int i = 0; i < 10000; i++) {
+            for (int j = 0; j < 5; j++) {
+                declets[j] = RND.nextInt(1024);
+                intlets[j] = Declet.dpdToInt(declets[j]);
+            }
+            final long dpd = (((long)declets[0])<<40) | (((long)declets[1])<<30) | (declets[2]<<20) | (declets[3]<<10) | declets[4];
+            final String exp = String.format("%03d%03d%03d%03d%03d", intlets[0], intlets[1], intlets[2], intlets[3], intlets[4]);
+            assertEquals("dpdToString(" + dpd + ")", exp, Digit.dpdToString(dpd));
+            sb.setLength(0);
+            assertEquals("dpdToStringBuilder(" + dpd + ")", exp, Digit.dpdToStringBuilder(dpd, sb).toString());
+            sb.setLength(0);
+            assertEquals("dpdToAppendable(" + dpd + ")", exp, Digit.dpdToAppendable(dpd, sb).toString());
         }
     }
 
