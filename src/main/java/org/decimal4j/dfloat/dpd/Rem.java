@@ -23,10 +23,7 @@
  */
 package org.decimal4j.dfloat.dpd;
 
-import org.decimal4j.dfloat.encode.Decimal64;
 import org.decimal4j.dfloat.ops.Remainder;
-
-import java.io.IOException;
 
 /**
  * Rem offers modulo and remainder operations for DPD encoded values.
@@ -38,8 +35,7 @@ public final class Rem {
 	}
 
 	public static final int mod10(final long dpd) {
-		final int declet = Declet.dpdToInt((int)(dpd & 0x3ff));
-		return Digit.decletToCharDigit(declet, 2) - '0';
+		return Digit.decletToCharDigit((int)(dpd & 0x3ff), 2) - '0';
 	}
 
 	//PRECONDITION: n>0

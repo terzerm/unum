@@ -23,8 +23,6 @@
  */
 package org.decimal4j.dfloat.dpd;
 
-import junit.framework.Assert;
-import org.decimal4j.dfloat.encode.Decimal64;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -35,6 +33,7 @@ import static org.junit.Assert.assertEquals;
 public class DigitTest {
 
     private static final Random RND = new Random();
+
     @Test
     public void decletToDigit() {
         for (int dpd = 0; dpd < 1024; dpd++) {

@@ -23,15 +23,10 @@
  */
 package org.decimal4j.dfloat.dpd;
 
-import org.junit.Assert;
 import org.junit.Test;
-import org.junit.matchers.JUnitMatchers;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 
 public class DecletTest {

@@ -23,13 +23,6 @@
  */
 package org.decimal4j.dfloat.dpd;
 
-import org.decimal4j.dfloat.encode.Decimal64;
-import org.decimal4j.dfloat.encode.Encoding;
-import org.decimal4j.dfloat.encode.other.DecNum;
-import org.decimal4j.dfloat.ops.Remainder;
-
-import java.io.IOException;
-
 /**
  * Shift deals with left and right shifting of DPD encoded values.
  */
@@ -39,10 +32,10 @@ public class Shift {
 		throw new RuntimeException("No Shift for you!");
 	}
 
-	private static final int[] DPD_TO_INT_RSH_1 = initRsh1();
-	private static final int[] DPD_TO_INT_RSH_2 = initRsh2();
-	private static final int[] DPD_TO_INT_LSH_1 = initLsh1();
-	private static final int[] DPD_TO_INT_LSH_2 = initLsh2();
+	private static final short[] DPD_TO_INT_RSH_1 = initRsh1();
+	private static final short[] DPD_TO_INT_RSH_2 = initRsh2();
+	private static final short[] DPD_TO_INT_LSH_1 = initLsh1();
+	private static final short[] DPD_TO_INT_LSH_2 = initLsh2();
 
 	public static final int shiftRightDeclet(final int dpdHi, final int dpdLo) {
 		return Declet.intToDpd(DPD_TO_INT_LSH_2[dpdHi] + DPD_TO_INT_RSH_1[dpdLo]);
@@ -64,10 +57,10 @@ public class Shift {
 	}
 	public static final long shiftRight(final int msd, final int dpd50, final int dpd40, final int dpd30, final int dpd20, final int dpd10) {
 		return shiftRightDeclet(dpd20, dpd10) |
-				(shiftRightDeclet(dpd30, dpd20) << 10) |
-				(shiftRightDeclet(dpd40, dpd30) << 20) |
-				(shiftRightDeclet(dpd50, dpd40) << 30) |
-				(shiftRightDeclet(msd, dpd50) << 40);
+				shiftRightDeclet(dpd30, dpd20) << 10 |
+				shiftRightDeclet(dpd40, dpd30) << 20 |
+				((long)shiftRightDeclet(dpd50, dpd40)) << 30 |
+				((long)shiftRightDeclet(msd, dpd50)) << 40;
 	}
 
 	public static final long shiftRight2(final int msd, final long dpd) {
@@ -81,26 +74,38 @@ public class Shift {
 	}
 	public static final long shiftRight2(final int msd, final int dpd50, final int dpd40, final int dpd30, final int dpd20, final int dpd10) {
 		return shiftLeftDeclet(dpd20, dpd10) |
-				(shiftLeftDeclet(dpd30, dpd20) << 10) |
-				(shiftLeftDeclet(dpd40, dpd30) << 20) |
-				(shiftLeftDeclet(dpd50, dpd40) << 30) |
-				(shiftLeftDeclet(msd, dpd50) << 40);
+				shiftLeftDeclet(dpd30, dpd20) << 10 |
+				shiftLeftDeclet(dpd40, dpd30) << 20 |
+				((long)shiftLeftDeclet(dpd50, dpd40)) << 30 |
+				((long)shiftLeftDeclet(msd, dpd50)) << 40;
 	}
 
-	private static final long shiftRight0to2(final int msd,
-									   final int dpd50,
-									   final int dpd40,
-									   final int dpd30,
-									   final int dpd20,
-									   final int dpd10,
-									   final int n) {
+	private static final int msd(final int dpd60) {
+		return Rem.mod10(dpd60);
+	}
+	private static final long canonicalize(final int dpd60,
+										   final int dpd50,
+										   final int dpd40,
+										   final int dpd30,
+										   final int dpd20,
+										   final int dpd10) {
+		return ((long)msd(dpd60)) << 50 | ((long)Declet.canonicalize(dpd50)) << 40 | ((long)Declet.canonicalize(dpd40)) << 30 |
+				Declet.canonicalize(dpd30) << 20 | Declet.canonicalize(dpd20) << 10 | Declet.canonicalize(dpd10);
+	}
+	private static final long shiftRight0to2(final int dpd60,
+											 final int dpd50,
+											 final int dpd40,
+											 final int dpd30,
+											 final int dpd20,
+											 final int dpd10,
+											 final int n) {
 		if (n == 1) {
-			return shiftRight(msd, dpd50, dpd40, dpd30, dpd20, dpd10);
+			return shiftRight(dpd60, dpd50, dpd40, dpd30, dpd20, dpd10);
 		}
 		if (n == 2) {
-			return shiftRight2(msd, dpd50, dpd40, dpd30, dpd20, dpd10);
+			return shiftRight2(dpd60, dpd50, dpd40, dpd30, dpd20, dpd10);
 		}
-		return (dpd10 & 0x3ffL) | ((dpd20 & 0x3ffL) << 10) | ((dpd30 & 0x3ffL) << 20) | ((dpd40 & 0x3ffL) << 30) | ((dpd50 & 0x3ffL) << 40) | ((msd & 0x00fL) << 50);
+		return canonicalize(dpd60, dpd50, dpd40, dpd30, dpd20, dpd10);
 	}
 
 	public static final long shiftRight(final long dpd, final int n) {
@@ -149,25 +154,26 @@ public class Shift {
 	}
 	public static final long shiftLeft(final int dpd50, final int dpd40, final int dpd30, final int dpd20, final int dpd10) {
 		final long msd = DPD_TO_INT_RSH_2[dpd50];
-		return (msd << 51) | shiftRight2(dpd50, dpd40, dpd30, dpd20, dpd10, 0);
+		return (msd << 50) | shiftRight2(dpd50, dpd40, dpd30, dpd20, dpd10, 0);
 	}
 	public static final long shiftLeft2(final int dpd50, final int dpd40, final int dpd30, final int dpd20, final int dpd10) {
-		final long msds = DPD_TO_INT_RSH_1[dpd50];
-		return (msds << 51) | shiftRight(dpd50, dpd40, dpd30, dpd20, dpd10, 0);
+		final long msd = Digit.decletToIntDigit(dpd50, 1);
+		return (msd << 50) | shiftRight(dpd50, dpd40, dpd30, dpd20, dpd10, 0);
 	}
-	private static final long shiftLeft0to2(final int dpd50,
-									  final int dpd40,
-									  final int dpd30,
-									  final int dpd20,
-									  final int dpd10,
-									  final int n) {
+	private static final long shiftLeft0to2(final int dpd60,
+											final int dpd50,
+											final int dpd40,
+											final int dpd30,
+											final int dpd20,
+											final int dpd10,
+											final int n) {
 		if (n == 1) {
 			return shiftLeft(dpd50, dpd40, dpd30, dpd20, dpd10);
 		}
 		if (n == 2) {
 			return shiftLeft2(dpd50, dpd40, dpd30, dpd20, dpd10);
 		}
-		return (dpd10 & 0x3ffL) | ((dpd20 & 0x3ffL) << 10) | ((dpd30 & 0x3ffL) << 20) | ((dpd40 & 0x3ffL) << 30) | ((dpd50 & 0x3ffL) << 40);
+		return canonicalize(dpd60, dpd50, dpd40, dpd30, dpd20, dpd10);
 	}
 
 	public static final long shiftLeft(final long dpd, final int n) {
@@ -179,50 +185,48 @@ public class Shift {
 		//binary search, optimized for small n
 		if (n < 6) {
 			if (n < 3) {
-				return shiftLeft0to2(dpd50, dpd40, dpd30, dpd20, dpd10, n);
+				return shiftLeft0to2(0, dpd50, dpd40, dpd30, dpd20, dpd10, n);
 			}
-			return shiftLeft0to2(dpd40, dpd30, dpd20, dpd10, 0, n-3);
+			return shiftLeft0to2(dpd50, dpd40, dpd30, dpd20, dpd10, 0, n-3);
 		}
 		if (n < 12) {
 			if (n < 9) {
-				return shiftLeft0to2(dpd30, dpd20, dpd10, 0, 0, n-6);
+				return shiftLeft0to2(dpd40, dpd30, dpd20, dpd10, 0, 0, n-6);
 			}
-			return shiftLeft0to2(dpd20, dpd10, 0, 0, 0, n-9);
+			return shiftLeft0to2(dpd30, dpd20, dpd10, 0, 0, 0, n-9);
 		}
 		if (n < 15) {
-			return shiftLeft0to2(dpd10, 0, 0, 0, 0, n-12);
+			return shiftLeft0to2(dpd20, dpd10, 0, 0, 0, 0, n-12);
 		}
-		return 0;
+		return shiftLeft0to2(dpd10, 0, 0, 0, 0, 0, n-15);
 	}
 
-	private static final int[] initRsh1() {
-		final int[] rsh = new int[1024];
+	private static final short[] initRsh1() {
+		final short[] rsh = new short[1024];
 		for (int i = 0; i < 1024; i++) {
-			final int value = Declet.dpdToInt(i);
-			rsh[i] = 10*Digit.decletToIntDigit(value, 2) + Digit.decletToIntDigit(value, 1);
+			rsh[i] = (short)(10*Digit.decletToIntDigit(i, 0) + Digit.decletToIntDigit(i, 1));
 		}
 		return rsh;
 	}
-	private static final int[] initRsh2() {
-		final int[] rsh = new int[1024];
+	private static final short[] initRsh2() {
+		final short[] rsh = new short[1024];
 		for (int i = 0; i < 1024; i++) {
-			rsh[i] = Digit.decletToIntDigit(Declet.dpdToInt(i), 2);
+			rsh[i] = (short)Digit.decletToIntDigit(i, 0);
 		}
 		return rsh;
 	}
-	private static final int[] initLsh1() {
-		final int[] rsh = new int[1024];
+	private static final short[] initLsh1() {
+		final short[] lsh = new short[1024];
 		for (int i = 0; i < 1024; i++) {
-			final int value = Declet.dpdToInt(i);
-			rsh[i] = 100*Digit.decletToIntDigit(value, 1) + 10*Digit.decletToIntDigit(value, 0);
+			lsh[i] = (short)(100*Digit.decletToIntDigit(i, 1) + 10*Digit.decletToIntDigit(i, 2));
 		}
-		return rsh;
+		return lsh;
 	}
-	private static final int[] initLsh2() {
-		final int[] rsh = new int[1024];
+	private static final short[] initLsh2() {
+		final short[] lsh = new short[1024];
 		for (int i = 0; i < 1024; i++) {
-			rsh[i] = 100*Digit.decletToIntDigit(Declet.dpdToInt(i), 0);
+			lsh[i] = (short)(100*Digit.decletToIntDigit(i, 2));
 		}
-		return rsh;
+		return lsh;
 	}
 }
