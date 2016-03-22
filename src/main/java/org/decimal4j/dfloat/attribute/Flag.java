@@ -23,8 +23,6 @@
  */
 package org.decimal4j.dfloat.attribute;
 
-import java.util.*;
-
 public enum Flag {
     InvalidOperation,
     DivisionByZero,

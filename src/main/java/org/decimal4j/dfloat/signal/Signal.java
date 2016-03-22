@@ -23,8 +23,9 @@
  */
 package org.decimal4j.dfloat.signal;
 
-import org.decimal4j.dfloat.attribute.*;
-import org.decimal4j.dfloat.encode.Decimal64;
+import org.decimal4j.dfloat.attribute.Attributes;
+import org.decimal4j.dfloat.attribute.Flag;
+import org.decimal4j.dfloat.attribute.FlagMode;
 
 public class Signal {
 

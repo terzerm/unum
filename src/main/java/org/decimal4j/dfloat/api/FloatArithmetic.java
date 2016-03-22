@@ -24,12 +24,10 @@
 package org.decimal4j.dfloat.api;
 
 import org.decimal4j.dfloat.attribute.Attributes;
-import org.decimal4j.dfloat.attribute.RoundingDirection;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
 
 public interface FloatArithmetic {
 	Attributes getAttributes();

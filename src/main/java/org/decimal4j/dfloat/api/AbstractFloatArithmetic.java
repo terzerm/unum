@@ -28,7 +28,6 @@ import org.decimal4j.dfloat.attribute.Attributes;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
 
 public class AbstractFloatArithmetic implements FloatArithmetic {
 

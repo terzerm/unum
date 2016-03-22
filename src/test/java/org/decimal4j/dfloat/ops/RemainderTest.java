@@ -23,12 +23,9 @@
  */
 package org.decimal4j.dfloat.ops;
 
-import junit.framework.Assert;
 import org.junit.Test;
 
-import java.util.Random;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class RemainderTest {
 

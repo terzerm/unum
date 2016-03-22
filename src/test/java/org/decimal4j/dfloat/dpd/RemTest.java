@@ -23,7 +23,6 @@
  */
 package org.decimal4j.dfloat.dpd;
 
-import org.decimal4j.dfloat.encode.Decimal64;
 import org.decimal4j.dfloat.ops.Remainder;
 import org.junit.Test;
 

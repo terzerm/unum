@@ -23,9 +23,6 @@
  */
 package org.decimal4j.dfloat.encode.other;
 
-import static org.decimal4j.dfloat.encode.other.DpdFunctions.invert;
-
-import org.decimal4j.dfloat.dpd.Dpd;
 import org.decimal4j.dfloat.encode.Encoding;
 
 /**
