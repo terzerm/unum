@@ -32,9 +32,13 @@ public class Shift {
 		throw new RuntimeException("No Shift for you!");
 	}
 
+	/** 10 bits, 1024 values */
 	private static final short[] DPD_TO_INT_RSH_1 = initRsh1();
+	/** 10 bits, 1024 values */
 	private static final short[] DPD_TO_INT_RSH_2 = initRsh2();
+	/** 10 bits, 1024 values */
 	private static final short[] DPD_TO_INT_LSH_1 = initLsh1();
+	/** 10 bits, 1024 values */
 	private static final short[] DPD_TO_INT_LSH_2 = initLsh2();
 
 	public static final int shiftRightDeclet(final int dpdHi, final int dpdLo) {
@@ -91,15 +95,15 @@ public class Shift {
 	}
 
 	public static final long shiftRight(final int msd, final long dpd, final int n) {
-		final int dpd10 = (int)(dpd & 0x3ff);
-		final int dpd20 = (int)((dpd >>> 10) & 0x3ff);
-		final int dpd30 = (int)((dpd >>> 20) & 0x3ff);
-		final int dpd40 = (int)((dpd >>> 30) & 0x3ff);
-		final int dpd50 = (int)((dpd >>> 40) & 0x3ff);
 		//binary search
 		if (n < 8) {
+			final int dpd30 = (int)((dpd >>> 20) & 0x3ff);
+			final int dpd40 = (int)((dpd >>> 30) & 0x3ff);
+			final int dpd50 = (int)((dpd >>> 40) & 0x3ff);
 			if (n < 4) {
+				final int dpd20 = (int)((dpd >>> 10) & 0x3ff);
 				if (n < 2) {
+					final int dpd10 = (int)(dpd & 0x3ff);
 					if (n == 0) {
 						return canonicalize(msd, dpd50, dpd40, dpd30, dpd20, dpd10);
 					}
@@ -107,12 +111,14 @@ public class Shift {
 					return shiftRight(msd, dpd50, dpd40, dpd30, dpd20, dpd10);
 				}
 				if (n == 2) {
+					final int dpd10 = (int)(dpd & 0x3ff);
 					return shiftRight2(msd, dpd50, dpd40, dpd30, dpd20, dpd10);
 				}
 				//else: n == 3
 				return canonicalize(0, msd, dpd50, dpd40, dpd30, dpd20);
 			}
 			if (n < 6) {
+				final int dpd20 = (int)((dpd >>> 10) & 0x3ff);
 				if (n == 4) {
 					return shiftRight(0, msd, dpd50, dpd40, dpd30, dpd20);
 				}
@@ -126,8 +132,11 @@ public class Shift {
 			return shiftRight(0, 0, msd, dpd50, dpd40, dpd30);
 		}
 		if (n < 12) {
+			final int dpd40 = (int)((dpd >>> 30) & 0x3ff);
+			final int dpd50 = (int)((dpd >>> 40) & 0x3ff);
 			if (n < 10) {
 				if (n == 8) {
+					final int dpd30 = (int)((dpd >>> 20) & 0x3ff);
 					return shiftRight2(0, 0, msd, dpd50, dpd40, dpd30);
 				}
 				//else: n == 9
@@ -140,6 +149,7 @@ public class Shift {
 			return shiftRight2(0, 0, 0, msd, dpd50, dpd40);
 		}
 		if (n < 14) {
+			final int dpd50 = (int)((dpd >>> 40) & 0x3ff);
 			if (n == 12) {
 				return canonicalize(0, 0, 0, 0, msd, dpd50);
 			}
@@ -147,6 +157,7 @@ public class Shift {
 			return shiftRight(0, 0, 0, 0, msd, dpd50);
 		}
 		if (n == 14) {
+			final int dpd50 = (int)((dpd >>> 40) & 0x3ff);
 			return shiftRight2(0, 0, 0, 0, msd, dpd50);
 		}
 		//else: n == 15 or n >= 16

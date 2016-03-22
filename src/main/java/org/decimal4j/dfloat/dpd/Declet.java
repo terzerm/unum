@@ -108,10 +108,6 @@ public final class Declet {
 	 * @return the number of leading zeroes in the 3 decimal digits, a value from 0 to 3.
 	 */
 	public static final int numberOfLeadingZeros(final int dpd) {
-//		if (dpd == 0) return 3;
-//		if (Digit.decletToCharDigit(dpd, 0) != '0') return 0;
-//		if (Digit.decletToCharDigit(dpd, 1) != '0') return 1;
-//		return 2;
 		return Digit.numberOfLeadingZeros(dpd);
 	}
 

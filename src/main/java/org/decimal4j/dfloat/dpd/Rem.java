@@ -38,13 +38,13 @@ public final class Rem {
 		return Digit.decletToCharDigit((int)(dpd & 0x3ff), 2) - '0';
 	}
 
-	//PRECONDITION: n>0
+	//PRECONDITION: 0<n<16
 	public static final Remainder remainderOfPow10(final long dpd, final int n) {
 		final int msd = Digit.dpdToCharDigit(dpd, 15 - n) - '0';
 		return remainderOfPow10(msd, 15 - n + 1, dpd);
 	}
 
-	//PRECONDITION: n>0
+	//PRECONDITION: 0<n<16
 	public static final Remainder remainderOfPow10(final int msd, final long dpd, final int n) {
 		return remainderOfPow10(msd, 15 - n, dpd);
 	}
@@ -66,7 +66,7 @@ public final class Rem {
 			final long declet = (dpd >>> shift) & 0x3ff;
 			if (declet != 0) return atMost;
 		}
-		for (int i = deci + 3; i >= offset; i--) {
+		for (int i = deci + 2; i >= offset; i--) {
 			if (Digit.dpdToCharDigit(dpd, i) != '0') {
 				return atMost;
 			}
