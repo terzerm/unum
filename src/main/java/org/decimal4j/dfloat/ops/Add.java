@@ -351,7 +351,7 @@ public final class Add {
         final int shift = Math.min(exp - expPreferred, 1 + Dpd.numberOfLeadingZeros(dpdHi));
         final int msdS = Digit.dpdToCharDigit(dpdHi, 15 - shift) - '0';
         final long hi = Shift.shiftLeft(dpdHi, shift);
-        final long lo = Shift.shiftRight(dpdLo, 15-shift);
+        final long lo = Shift.shiftRight(0, dpdLo, 15-shift);
         final long s = Dpd.add(hi, lo);//no overflow possible (it is logically an or, not an add)
         final Remainder remainder = Rem.remainderOfPow10(dpdLo, 15 - shift);
         return roundIfNecessaryAndSignalInexact(sgn, exp - shift, msdS, s, remainder, opMode, a, b, attributes);

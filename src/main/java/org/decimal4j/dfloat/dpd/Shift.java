@@ -43,9 +43,6 @@ public class Shift {
 	public static final int shiftLeftDeclet(final int dpdHi, final int dpdLo) {
 		return Declet.intToDpd(DPD_TO_INT_LSH_1[dpdHi] + DPD_TO_INT_RSH_2[dpdLo]);
 	}
-	public static final long shiftRight(final long dpd) {
-		return shiftRight(0, dpd);
-	}
 	public static final long shiftRight(final int msd, final long dpd) {
 		return shiftRight(
 				msd,
@@ -92,47 +89,67 @@ public class Shift {
 		return ((long)msd(dpd60)) << 50 | ((long)Declet.canonicalize(dpd50)) << 40 | ((long)Declet.canonicalize(dpd40)) << 30 |
 				Declet.canonicalize(dpd30) << 20 | Declet.canonicalize(dpd20) << 10 | Declet.canonicalize(dpd10);
 	}
-	private static final long shiftRight0to2(final int dpd60,
-											 final int dpd50,
-											 final int dpd40,
-											 final int dpd30,
-											 final int dpd20,
-											 final int dpd10,
-											 final int n) {
-		if (n == 1) {
-			return shiftRight(dpd60, dpd50, dpd40, dpd30, dpd20, dpd10);
-		}
-		if (n == 2) {
-			return shiftRight2(dpd60, dpd50, dpd40, dpd30, dpd20, dpd10);
-		}
-		return canonicalize(dpd60, dpd50, dpd40, dpd30, dpd20, dpd10);
-	}
 
-	public static final long shiftRight(final long dpd, final int n) {
-		return shiftRight(0, dpd, n);
-	}
 	public static final long shiftRight(final int msd, final long dpd, final int n) {
 		final int dpd10 = (int)(dpd & 0x3ff);
 		final int dpd20 = (int)((dpd >>> 10) & 0x3ff);
 		final int dpd30 = (int)((dpd >>> 20) & 0x3ff);
 		final int dpd40 = (int)((dpd >>> 30) & 0x3ff);
 		final int dpd50 = (int)((dpd >>> 40) & 0x3ff);
-		//binary search, optimized for small n
-		if (n < 6) {
-			if (n < 3) {
-				return shiftRight0to2(msd, dpd50, dpd40, dpd30, dpd20, dpd10, n);
+		//binary search
+		if (n < 8) {
+			if (n < 4) {
+				if (n < 2) {
+					if (n == 0) {
+						return canonicalize(msd, dpd50, dpd40, dpd30, dpd20, dpd10);
+					}
+					//else: n == 1
+					return shiftRight(msd, dpd50, dpd40, dpd30, dpd20, dpd10);
+				}
+				if (n == 2) {
+					return shiftRight2(msd, dpd50, dpd40, dpd30, dpd20, dpd10);
+				}
+				//else: n == 3
+				return canonicalize(0, msd, dpd50, dpd40, dpd30, dpd20);
 			}
-			return shiftRight0to2(0, msd, dpd50, dpd40, dpd30, dpd20, n-3);
+			if (n < 6) {
+				if (n == 4) {
+					return shiftRight(0, msd, dpd50, dpd40, dpd30, dpd20);
+				}
+				//else: n == 5
+				return shiftRight2(0, msd, dpd50, dpd40, dpd30, dpd20);
+			}
+			if (n == 6) {
+				return canonicalize(0, 0, msd, dpd50, dpd40, dpd30);
+			}
+			//else: n == 7
+			return shiftRight(0, 0, msd, dpd50, dpd40, dpd30);
 		}
 		if (n < 12) {
-			if (n < 9) {
-				return shiftRight0to2(0, 0, msd, dpd50, dpd40, dpd30, n - 6);
+			if (n < 10) {
+				if (n == 8) {
+					return shiftRight2(0, 0, msd, dpd50, dpd40, dpd30);
+				}
+				//else: n == 9
+				return canonicalize(0, 0, 0, msd, dpd50, dpd40);
 			}
-			return shiftRight0to2(0, 0, 0, msd, dpd50, dpd40, n-9);
+			if (n == 10) {
+				return shiftRight(0, 0, 0, msd, dpd50, dpd40);
+			}
+			//else: n == 11
+			return shiftRight2(0, 0, 0, msd, dpd50, dpd40);
 		}
-		if (n < 15) {
-			return shiftRight0to2(0, 0, 0, 0, msd, dpd50, n-12);
+		if (n < 14) {
+			if (n == 12) {
+				return canonicalize(0, 0, 0, 0, msd, dpd50);
+			}
+			//else: n == 13
+			return shiftRight(0, 0, 0, 0, msd, dpd50);
 		}
+		if (n == 14) {
+			return shiftRight2(0, 0, 0, 0, msd, dpd50);
+		}
+		//else: n == 15 or n >= 16
 		return n < 16 ? msd : 0;
 	}
 
@@ -160,45 +177,75 @@ public class Shift {
 		final long msd = Digit.decletToIntDigit(dpd50, 1);
 		return (msd << 50) | shiftRight(dpd50, dpd40, dpd30, dpd20, dpd10, 0);
 	}
-	private static final long shiftLeft0to2(final int dpd60,
-											final int dpd50,
-											final int dpd40,
-											final int dpd30,
-											final int dpd20,
-											final int dpd10,
-											final int n) {
-		if (n == 1) {
-			return shiftLeft(dpd50, dpd40, dpd30, dpd20, dpd10);
-		}
-		if (n == 2) {
-			return shiftLeft2(dpd50, dpd40, dpd30, dpd20, dpd10);
-		}
-		return canonicalize(dpd60, dpd50, dpd40, dpd30, dpd20, dpd10);
-	}
-
 	public static final long shiftLeft(final long dpd, final int n) {
-		final int dpd10 = (int)(dpd & 0x3ff);
-		final int dpd20 = (int)((dpd >>> 10) & 0x3ff);
-		final int dpd30 = (int)((dpd >>> 20) & 0x3ff);
-		final int dpd40 = (int)((dpd >>> 30) & 0x3ff);
-		final int dpd50 = (int)((dpd >>> 40) & 0x3ff);
-		//binary search, optimized for small n
-		if (n < 6) {
-			if (n < 3) {
-				return shiftLeft0to2(0, dpd50, dpd40, dpd30, dpd20, dpd10, n);
+		//binary search
+		if (n < 8) {
+			final int dpd10 = (int)(dpd & 0x3ff);
+			final int dpd20 = (int)((dpd >>> 10) & 0x3ff);
+			final int dpd30 = (int)((dpd >>> 20) & 0x3ff);
+			if (n < 4) {
+				final int dpd40 = (int)((dpd >>> 30) & 0x3ff);
+				final int dpd50 = (int)((dpd >>> 40) & 0x3ff);
+				if (n < 2) {
+					if (n == 0) {
+						return canonicalize(0, dpd50, dpd40, dpd30, dpd20, dpd10);
+					}
+					//else: n == 1
+					return shiftLeft(dpd50, dpd40, dpd30, dpd20, dpd10);
+				}
+				if (n == 2) {
+					return shiftLeft2(dpd50, dpd40, dpd30, dpd20, dpd10);
+				}
+				//else: n == 3
+				return canonicalize(dpd50, dpd40, dpd30, dpd20, dpd10, 0);
 			}
-			return shiftLeft0to2(dpd50, dpd40, dpd30, dpd20, dpd10, 0, n-3);
+			if (n < 6) {
+				final int dpd40 = (int)((dpd >>> 30) & 0x3ff);
+				if (n == 4) {
+					return shiftLeft(dpd40, dpd30, dpd20, dpd10, 0);
+				}
+				//else: n == 5
+				return shiftLeft2(dpd40, dpd30, dpd20, dpd10, 0);
+			}
+			if (n == 6) {
+				final int dpd40 = (int)((dpd >>> 30) & 0x3ff);
+				return canonicalize(dpd40, dpd30, dpd20, dpd10, 0, 0);
+			}
+			//else: n == 7
+			return shiftLeft(dpd30, dpd20, dpd10, 0, 0);
 		}
 		if (n < 12) {
-			if (n < 9) {
-				return shiftLeft0to2(dpd40, dpd30, dpd20, dpd10, 0, 0, n-6);
+			final int dpd10 = (int)(dpd & 0x3ff);
+			final int dpd20 = (int)((dpd >>> 10) & 0x3ff);
+			if (n < 10) {
+				final int dpd30 = (int)((dpd >>> 20) & 0x3ff);
+				if (n == 8) {
+					return shiftLeft2(dpd30, dpd20, dpd10, 0, 0);
+				}
+				//else: n == 9
+				return canonicalize(dpd30, dpd20, dpd10, 0, 0, 0);
 			}
-			return shiftLeft0to2(dpd30, dpd20, dpd10, 0, 0, 0, n-9);
+			if (n == 10) {
+				return shiftLeft(dpd20, dpd10, 0, 0, 0);
+			}
+			//else: n == 11
+			return shiftLeft2(dpd20, dpd10, 0, 0, 0);
 		}
-		if (n < 15) {
-			return shiftLeft0to2(dpd20, dpd10, 0, 0, 0, 0, n-12);
+		if (n < 14) {
+			final int dpd10 = (int)(dpd & 0x3ff);
+			if (n == 12) {
+				final int dpd20 = (int)((dpd >>> 10) & 0x3ff);
+				return canonicalize(dpd20, dpd10, 0, 0, 0, 0);
+			}
+			//else: n == 13
+			return shiftLeft(dpd10, 0, 0, 0, 0);
 		}
-		return shiftLeft0to2(dpd10, 0, 0, 0, 0, 0, n-15);
+		if (n == 14) {
+			final int dpd10 = (int)(dpd & 0x3ff);
+			return shiftLeft2(dpd10, 0, 0, 0, 0);
+		}
+		//else: n == 15 or n >= 16
+		return n < 16 ? ((long)msd((int)(dpd & 0x3ff))) << 50 : 0;
 	}
 
 	private static final short[] initRsh1() {

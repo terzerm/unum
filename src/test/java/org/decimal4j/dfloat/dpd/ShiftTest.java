@@ -67,20 +67,25 @@ public class ShiftTest {
             final long dpd = (((long)declets[0])<<40) | (((long)declets[1])<<30) | (declets[2]<<20) | (declets[3]<<10) | declets[4];
             final long num = ((long)msd) << 50 | Dpd.canonicalize(dpd);
             final int[] digits = digits(intlets);
-            for (int j = 0; j < 16; j++) {
+            for (int j = 0; j <= 16; j++) {
                 final long lsh = lsh(j, digits);
                 final long rsh = rsh(j, msd, digits);
                 try {
                     assertEquals("shiftLeft(" + dpd + ", " + j + ")", lsh, Shift.shiftLeft(dpd, j));
                     assertEquals("shiftRight(" + msd + ", " + dpd + ", " + j + ")", rsh, Shift.shiftRight(msd, dpd, j));
+                    if (j == 1) {
+                        assertEquals("shiftLeft(" + dpd + ")", lsh, Shift.shiftLeft(dpd));
+                        assertEquals("shiftRight(" + msd + ", " + dpd + ")", rsh, Shift.shiftRight(msd, dpd));
+                    } else if (j == 2) {
+                        assertEquals("shiftLeft2(" + dpd + ")", lsh, Shift.shiftLeft2(dpd));
+                        assertEquals("shiftRight2(" + msd + ", " + dpd + ")", rsh, Shift.shiftRight2(msd, dpd));
+                    }
                 } catch (AssertionError e) {
                     System.out.println("num=" + msd + "'" + Digit.dpdToString(dpd));
-                    System.out.println("lsh=" + (lsh >>> 50) + "'" + Digit.dpdToString(lsh));
-                    System.out.println("rsh=" + (rsh >>> 50) + "'" + Digit.dpdToString(rsh));
-                    System.out.println("aLS=" + (Shift.shiftLeft(dpd, j) >>> 50) + "'" + Digit.dpdToString(Shift.shiftLeft(dpd, j)));
-                    System.out.println("aRS=" + (Shift.shiftRight(msd, dpd, j) >>> 50) + "'" + Digit.dpdToString(Shift.shiftRight(msd, dpd, j)));
-                    System.out.println("can=" + Dpd.isCanonical(rsh));
-                    System.out.println("cRS=" + Dpd.isCanonical(Shift.shiftRight(msd, dpd, j)));
+                    System.out.println("expLSH=" + (lsh >>> 50) + "'" + Digit.dpdToString(lsh));
+                    System.out.println("expRSH=" + (rsh >>> 50) + "'" + Digit.dpdToString(rsh));
+                    System.out.println("actLSH=" + (Shift.shiftLeft(dpd, j) >>> 50) + "'" + Digit.dpdToString(Shift.shiftLeft(dpd, j)));
+                    System.out.println("actRSH=" + (Shift.shiftRight(msd, dpd, j) >>> 50) + "'" + Digit.dpdToString(Shift.shiftRight(msd, dpd, j)));
                     throw e;
                 }
             }
