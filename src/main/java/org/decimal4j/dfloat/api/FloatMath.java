@@ -23,6 +23,7 @@
  */
 package org.decimal4j.dfloat.api;
 
+import javafx.scene.transform.Scale;
 import org.decimal4j.dfloat.encode.Decimal64;
 import org.decimal4j.dfloat.ops.Add;
 import org.decimal4j.dfloat.ops.Sign;
@@ -30,9 +31,20 @@ import org.decimal4j.dfloat.ops.Sub;
 
 public final class FloatMath {
 
-	public static final long ZERO = Decimal64.ZERO;
+	public static final long ZERO 			= Decimal64.ZERO;
+	public static final long ONE  			= Decimal64.ZERO + 1;
+	public static final long TEN			= 0x223c000000000001L;
+
 	public static final long MIN_NORMAL = Decimal64.MIN_NORMAL;
 	public static final long MAX_NORMAL = Decimal64.MAX_NORMAL;
+
+//	public static long scale10(final long x, final long n) {
+//		return Pow10.scale10(x, n);
+//	}
+//
+//	public static long log10(final long x, final long n) {
+//		return Pow10.log10(x, n);
+//	}
 
 	/**
 	 * Copy the sign of b into a.

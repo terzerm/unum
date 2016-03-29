@@ -46,11 +46,11 @@ public class Decimal64 {
 	public static final long INF = 0x7800000000000000L; /* 0 11110 00 ... Infinity */
 	
 	public static final long SIGN_BIT_MASK = 0x8000000000000000L; /* 1 00000 00 ... sign bit */
-	
-	public static final long ZERO = 0x2238000000000000L;
 
-	public static final long MIN_NORMAL = encode(1, MIN_EXPONENT, 1, 0);
-	public static final long MAX_NORMAL = encode(1, MAX_EXPONENT, 9, 999999999999999L);
+	public static final long ZERO	= 0x2238000000000000L;
+
+	public static final long MIN_NORMAL = 0x043c000000000000L;
+	public static final long MAX_NORMAL = 0x77ff8d7ea4c67fffL;
 
 	public static final long COEFF_CONT_MASK = 0x0003ffffffffffffL;
 	private static final long EXP_CONT_MASK =  0x03fc000000000000L;
@@ -108,7 +108,6 @@ public class Decimal64 {
 			  0x0000000000000000L, 0x0000000000000000L, 0x4000000000000000L, 0x4400000000000000L, 0x4800000000000000L, 0x4C00000000000000L,
 			  0x5000000000000000L, 0x5400000000000000L, 0x5800000000000000L, 0x5C00000000000000L, 0x7000000000000000L, 0x7400000000000000L,
 			  0x0000000000000000L, 0x0000000000000000L, 0x0000000000000000L, 0x0000000000000000L, 0x0000000000000000L, 0x0000000000000000L};
-	// @formatter:on
 
 	/**
 	 * Tests for any zero.
@@ -186,7 +185,7 @@ public class Decimal64 {
 
 	public static final long encode(final long sign, final int exp, final int msd, final long dpd) {
 		final int expBiased = exp + EXPONENT_BIAS;
-		return (sign & SIGN_BIT_MASK) | DECCOMBFROM[(expBiased >>> 4) + msd] | ((expBiased << 50) & EXP_CONT_MASK) | (dpd & COEFF_CONT_MASK);
+		return (sign & SIGN_BIT_MASK) | DECCOMBFROM[((expBiased >> DECECONL)<<4) + msd] | ((((long)expBiased) << 50) & EXP_CONT_MASK) | (dpd & COEFF_CONT_MASK);
 	}
 
 	/* Macros and masks for the exponent continuation field and MSD   */
@@ -213,4 +212,14 @@ public class Decimal64 {
 		return (int)(dpd >>> (26+32));
 	}
 
+	public static void main(String... args) {
+		for (int i = 0; i < 10; i++) {
+			System.out.println(i + ":\t" + Long.toHexString(encode(1, 0, 0, i)));
+		}
+		for (long i = 1, e=0; i < 10000000000000000L; i*=10,e++) {
+			System.out.println("0x" + Long.toHexString(encode(1, (int)e, 0, 1)) + "L");
+		}
+		System.out.println("MIN_NORMAL=\t" + Long.toHexString(encode(1, MIN_EXPONENT, 1, 0)));
+		System.out.println("MAX_NORMAL=\t" + Long.toHexString(encode(1, MAX_EXPONENT-(MAX_PRECISION-1), 9, 999999999999999L)));
+	}
 }
