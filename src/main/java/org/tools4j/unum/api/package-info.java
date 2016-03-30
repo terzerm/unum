@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2016 decimal4j (tools4j), Marco Terzer
+ * Copyright (c) 2016 unum4j (tools4j), Marco Terzer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,34 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.decimal4j.dfloat.attribute;
-
-public enum Flag {
-    InvalidOperation,
-    DivisionByZero,
-    Overflow,
-    Underflow,
-    Inexact;
-
-    private final int mask = 1 << ordinal();
-
-    public final boolean test(final int flags) {
-        return (flags & mask) != 0;
-    }
-    public final int set(final int flags) {
-        return flags | mask;
-    }
-    public final int clear(final int flags) {
-        return flags & (~mask);
-    }
-
-    public static final Flag byOrdinal(final int ordinal) {
-        return UNIVERSE[ordinal];
-    }
-
-    public static final int length() {
-        return UNIVERSE.length;
-    }
-
-    private static final Flag[] UNIVERSE = Flag.values();
-}
+/**
+ * Contains the blablabla interface and other
+ * central elements defining the <b>unum4j</b> API blablabla
+ */
+package org.tools4j.unum.api;

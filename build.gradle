@@ -3,13 +3,13 @@ apply plugin: 'jacoco'
 apply plugin: 'license'
 
 sourceCompatibility = 1.7
-group = "org.decimal4j"
+group = "org.tools4j"
 version = '1.0.1-SNAPSHOT'
-archivesBaseName = "decimal4j-float"
+archivesBaseName = "unum4j"
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'decimal4j-float', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'unum4j', 'Implementation-Version': version
     }
 }
 
@@ -78,7 +78,7 @@ javadoc {
 	options.showFromPackage()
 	options.linkSource()
 	options.links("http://docs.oracle.com/javase/8/docs/api/");
-	options.windowTitle = "decimal4j-float API ${version}"
+	options.windowTitle = "unum4j API ${version}"
 	options.overview = "src/main/java/overview.html";
 }
 
@@ -125,16 +125,16 @@ if (project.hasProperty('upload')) {
             		}
             		
             		pom.project {
-						name 'decimal4j-float'
+						name 'unum4j'
 						packaging 'jar'
 						// optionally artifactId can be defined here 
-						description 'Java library for fast decimal floating point arithmetic.'
-						url 'https://github.com/tools4j/decimal4j-float'
+						description 'Java library for unuversial number (unum) arithmetic.'
+						url 'https://github.com/tools4j/unum4j'
 
         				scm {
-        					connection 'scm:git:git@github.com:tools4j/decimal4j-float.git'
-        					developerConnection 'scm:git:git@github.com:tools4j/decimal4j-float.git'
-        					url 'git@github.com:tools4j/decimal4j-float.git'
+        					connection 'scm:git:git@github.com:tools4j/unum4j.git'
+        					developerConnection 'scm:git:git@github.com:tools4j/unum4j.git'
+        					url 'git@github.com:tools4j/unum4j.git'
         				}
         				licenses {
         					license {

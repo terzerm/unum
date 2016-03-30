@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2016 decimal4j (tools4j), Marco Terzer
+ * Copyright (c) 2016 unum4j (tools4j), Marco Terzer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.decimal4j.dfloat.attribute;
+package org.tools4j.unum.api;
 
-public interface Attributes {
+/**
+ * An universial number.
+ */
+public class Unum extends Number {
 
-    Attributes DEFAULT = DefaultAttributes.INSTANCE;
+    @Override
+    public int intValue() {
+        return 0;
+    }
 
-    RoundingDirection getBinaryRoundingDirection();
-    RoundingDirection getDecimalRoundingDirection();
-    ResetMode getResetMode();
-    DelayMode getDelayMode();
-    FlagMode getFlagMode(Flag flag);
-    ExceptionHandler getExceptionHandler();
+    @Override
+    public long longValue() {
+        return 0;
+    }
+
+    @Override
+    public float floatValue() {
+        return 0;
+    }
+
+    @Override
+    public double doubleValue() {
+        return 0;
+    }
 }
