@@ -1,2 +1,2 @@
-## decimal4j-dfloat
-Java library for fast 64bit decimal floating-point arithmetic.
+## tools4j/unum
+Java library for universial number (unum) arithmetic
