@@ -23,33 +23,21 @@
  */
 package org.tools4j.unum.api;
 
-import java.io.Serializable;
-
 /**
- * An universial number.
+ * Created by terz on 9/05/2016.
  */
-public interface Unum<F> extends Serializable, Comparable<Unum<F>> {
+public class Env {
+    private final int exponentSizeBits;
+    private final int fractionSizeBits;
 
-    boolean isNaN();
-    boolean isInfinite();
-    boolean isFinite();
-    boolean isExact();
-    boolean isInexact();
-    boolean isNegative();
-    boolean isPositive();
-    boolean isZero();
-
-    int getExponent();
-    int getExponentSize();
-    F getFraction();
-    int getFractionSize();
-
-    @Override
-    int compareTo(Unum<F> o);
-
-    @Override
-    boolean equals(Object o);
-
-    @Override
-    String toString();
+    public Env(final int exponentSizeBits, final int fractionSizeBits) {
+        if (exponentSizeBits < 1 || exponentSizeBits > 31) {
+            throw new IllegalArgumentException("Illegal number of exponentSizeBits=" + exponentSizeBits + " not in [1,31]");
+        }
+        if (fractionSizeBits < 1) {
+            throw new IllegalArgumentException("Illegal number of fractionSizeBits=" + fractionSizeBits + " not in [1," + Integer.MAX_VALUE + "]");
+        }
+        this.exponentSizeBits = exponentSizeBits;
+        this.fractionSizeBits = fractionSizeBits;
+    }
 }

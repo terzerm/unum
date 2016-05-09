@@ -23,33 +23,11 @@
  */
 package org.tools4j.unum.api;
 
-import java.io.Serializable;
-
 /**
- * An universial number.
+ * Created by terz on 9/05/2016.
  */
-public interface Unum<F> extends Serializable, Comparable<Unum<F>> {
+public class DoubleConsts {
 
-    boolean isNaN();
-    boolean isInfinite();
-    boolean isFinite();
-    boolean isExact();
-    boolean isInexact();
-    boolean isNegative();
-    boolean isPositive();
-    boolean isZero();
-
-    int getExponent();
-    int getExponentSize();
-    F getFraction();
-    int getFractionSize();
-
-    @Override
-    int compareTo(Unum<F> o);
-
-    @Override
-    boolean equals(Object o);
-
-    @Override
-    String toString();
+    public static final double QNAN = Double.NaN;
+    public static final double SNAN = Double.longBitsToDouble(Double.doubleToRawLongBits(Double.NaN) | Long.MIN_VALUE);
 }

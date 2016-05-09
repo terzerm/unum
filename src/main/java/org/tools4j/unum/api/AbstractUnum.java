@@ -23,33 +23,25 @@
  */
 package org.tools4j.unum.api;
 
-import java.io.Serializable;
-
 /**
  * An universial number.
  */
-public interface Unum<F> extends Serializable, Comparable<Unum<F>> {
-
-    boolean isNaN();
-    boolean isInfinite();
-    boolean isFinite();
-    boolean isExact();
-    boolean isInexact();
-    boolean isNegative();
-    boolean isPositive();
-    boolean isZero();
-
-    int getExponent();
-    int getExponentSize();
-    F getFraction();
-    int getFractionSize();
+abstract public class AbstractUnum<F> extends Number implements Unum<F> {
 
     @Override
-    int compareTo(Unum<F> o);
+    public int intValue() {
+        return (int)longValue();
+    }
 
     @Override
-    boolean equals(Object o);
+    abstract public long longValue();
 
     @Override
-    String toString();
+    public float floatValue() {
+        return (float)doubleValue();
+    }
+
+    @Override
+    abstract public double doubleValue();
+
 }
