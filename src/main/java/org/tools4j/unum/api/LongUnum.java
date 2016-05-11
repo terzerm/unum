@@ -23,14 +23,14 @@
  */
 package org.tools4j.unum.api;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Objects;
 
 /**
  * An universial number where the fraction fits in a 64bit long value. The fraction size is therefore at most 64 bits
  * and the fraction size contains 6 bits. The exponent fits in 16 bits and the exponent size contains 4 bits.
  */
-public class LongUnum extends AbstractUnum<Long> {
+public class LongUnum extends AbstractUnum implements Serializable, Comparable<LongUnum> {
 
     private static final byte SIGN_POSITIVE = 0;
     private static final byte SIGN_NEGATIVE = -1;
@@ -87,26 +87,6 @@ public class LongUnum extends AbstractUnum<Long> {
     }
 
     @Override
-    public int getExponent() {
-        return exponent;
-    }
-
-    @Override
-    public int getExponentSize() {
-        return exponentSize;
-    }
-
-    @Override
-    public Long getFraction() {
-        return fraction;
-    }
-
-    @Override
-    public int getFractionSize() {
-        return fractionSize;
-    }
-
-    @Override
     public boolean isNaN() {
         return ubit == UBIT_INEXACT & exponent == MAX_EXPONENT & fraction == MAX_FRACTION;
     }
@@ -123,12 +103,17 @@ public class LongUnum extends AbstractUnum<Long> {
 
     @Override
     public boolean isPositive() {
-        return sign > 0 & !isZero();
+        return sign > 0 & !isZero() & !isNaN();
     }
 
     @Override
     public boolean isNegative() {
-        return sign < 0 & !isZero();
+        return sign < 0 & !isZero() & !isNaN();
+    }
+
+    @Override
+    public boolean isSignNegative() {
+        return sign < 0;
     }
 
     @Override
@@ -233,14 +218,15 @@ public class LongUnum extends AbstractUnum<Long> {
 
     private static BigDecimal bigDecimalValueExact(final byte sign, final long fraction, final int fractionSize, final int exponent, final int expovalue) {
         final BigDecimal two = BigDecimal.valueOf(2);
-        final BigDecimal scaledFraction = BigDecimal.valueOf(fraction).divide(two.pow(fractionSize));
+        final BigDecimal bigFraction = fraction >= 0 ? BigDecimal.valueOf(fraction) : BigDecimal.valueOf(fraction >>> 1).multiply(two).add(BigDecimal.valueOf(fraction & 0x1));
+        final BigDecimal scaledFraction = bigFraction.divide(two.pow(fractionSize));
         final BigDecimal scaledFractionWithHiddenBit = exponent == 0 ? scaledFraction : BigDecimal.ONE.add(scaledFraction);
-        final BigDecimal abs = scaledFractionWithHiddenBit.multiply(two.pow(expovalue));
+        final BigDecimal abs = scaledFractionWithHiddenBit.multiply(two.pow(expovalue)).stripTrailingZeros();
         return sign >= 0 ? abs : abs.negate();
     }
 
     @Override
-    public int compareTo(Unum<Long> o) {
+    public int compareTo(LongUnum o) {
         return 0;
     }
 
@@ -261,7 +247,7 @@ public class LongUnum extends AbstractUnum<Long> {
                         return Double.toString(doubleValueExact(sign, hidden, fraction, fractionSize, expovalue));
                     }
                 }
-                return bigDecimalValueExact(sign, fraction, fractionSize, exponent, expovalue).toString();
+                return bigDecimalValueExact(sign, fraction, fractionSize, exponent, expovalue).toPlainString();
 
             }
             //infinite
@@ -292,5 +278,10 @@ public class LongUnum extends AbstractUnum<Long> {
         System.out.println("(1*)=\t" + new LongUnum(SIGN_POSITIVE, 0, 1, UBIT_INEXACT, (byte)1, (byte)1));
         System.out.println("(2*)=\t" + new LongUnum(SIGN_POSITIVE, 1, 0, UBIT_INEXACT, (byte)1, (byte)1));
         System.out.println("(3*)=\t" + new LongUnum(SIGN_POSITIVE, 1, 1, UBIT_INEXACT, (byte)1, (byte)1));
+        System.out.println("(e=2^65535, f= 1.0)=\t" + new LongUnum(SIGN_POSITIVE, MAX_EXPONENT-1, 0, UBIT_EXACT, (byte)16, (byte)63));
+        System.out.println("(e=2^65536, f= 1.0)=\t" + new LongUnum(SIGN_POSITIVE, MAX_EXPONENT, 0, UBIT_EXACT, (byte)16, (byte)63));
+        System.out.println("(e=2^65535, f=2^64)=\t" + new LongUnum(SIGN_POSITIVE, MAX_EXPONENT-1, MAX_FRACTION, UBIT_EXACT, (byte)16, (byte)64));
+        System.out.println("(e=2^65536, f=2^63)=\t" + new LongUnum(SIGN_POSITIVE, MAX_EXPONENT, MAX_FRACTION>>>1, UBIT_EXACT, (byte)16, (byte)63));
+        System.out.println("(e=2^65536, f~2^64)=\t" + new LongUnum(SIGN_POSITIVE, MAX_EXPONENT, MAX_FRACTION^2, UBIT_EXACT, (byte)16, (byte)64));
     }
 }

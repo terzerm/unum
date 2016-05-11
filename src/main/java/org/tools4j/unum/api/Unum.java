@@ -28,7 +28,7 @@ import java.io.Serializable;
 /**
  * An universial number.
  */
-public interface Unum<F> extends Serializable, Comparable<Unum<F>> {
+public interface Unum {
 
     boolean isNaN();
     boolean isInfinite();
@@ -37,18 +37,11 @@ public interface Unum<F> extends Serializable, Comparable<Unum<F>> {
     boolean isInexact();
     boolean isNegative();
     boolean isPositive();
+    boolean isSignNegative();
     boolean isZero();
 
-    int getExponent();
-    int getExponentSize();
-    F getFraction();
-    int getFractionSize();
-
-    Unum<F> getLowerBound();
-    Unum<F> getUpperBound();
-
-    @Override
-    int compareTo(Unum<F> o);
+    Unum getLowerBound();
+    Unum getUpperBound();
 
     @Override
     boolean equals(Object o);
