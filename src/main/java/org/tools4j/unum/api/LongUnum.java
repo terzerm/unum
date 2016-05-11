@@ -23,6 +23,7 @@
  */
 package org.tools4j.unum.api;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
@@ -44,8 +45,8 @@ public class LongUnum extends AbstractUnum<Long> {
     public static final LongUnum ONE = new LongUnum(SIGN_POSITIVE, 0, 1, UBIT_EXACT, (byte)1, (byte)1);
     public static final LongUnum TWO = new LongUnum(SIGN_POSITIVE, 1, 0, UBIT_EXACT, (byte)1, (byte)1);
     public static final LongUnum TEN = new LongUnum(SIGN_POSITIVE, 6, 2, UBIT_EXACT, (byte)3, (byte)3);
-    public static final LongUnum INF = new LongUnum(SIGN_POSITIVE, MAX_EXPONENT, MAX_FRACTION, UBIT_EXACT, (byte)1, (byte)1);
-    public static final LongUnum NAN = new LongUnum(SIGN_POSITIVE, MAX_EXPONENT, MAX_FRACTION, UBIT_INEXACT, (byte)1, (byte)1);
+    public static final LongUnum INF = new LongUnum(SIGN_POSITIVE, MAX_EXPONENT, MAX_FRACTION, UBIT_EXACT, (byte)16, (byte)64);
+    public static final LongUnum NAN = new LongUnum(SIGN_POSITIVE, MAX_EXPONENT, MAX_FRACTION, UBIT_INEXACT, (byte)16, (byte)64);
 
     private final byte sign;
     private final int exponent;
@@ -55,12 +56,34 @@ public class LongUnum extends AbstractUnum<Long> {
     private final byte fractionSize;
 
     private LongUnum(final byte sign, final int exponent, final long fraction, final byte ubit, final byte exponentSize, final byte fractionSize) {
+        validate(sign, exponent, fraction, ubit, exponentSize, fractionSize);
         this.sign = sign;
         this.exponent = exponent;
         this.fraction = fraction;
         this.ubit = ubit;
         this.exponentSize = exponentSize;
         this.fractionSize = fractionSize;
+    }
+
+    private static void validate(final byte sign, final int exponent, final long fraction, final byte ubit, final byte exponentSize, final byte fractionSize) {
+        if (sign < -1 | sign > 0) {
+            throw new IllegalArgumentException("invalid sign: " + sign);
+        }
+        if (ubit < 0 | ubit > 1) {
+            throw new IllegalArgumentException("invalid ubit: " + ubit);
+        }
+        if (exponentSize < 1 | exponentSize > 16) {
+            throw new IllegalArgumentException("invalid exponentSize: " + exponentSize);
+        }
+        if (fractionSize < 1 | fractionSize > 64) {
+            throw new IllegalArgumentException("invalid fractionSize: " + fractionSize);
+        }
+        if (exponent < 0 || (exponent >= (1 << exponentSize))) {
+            throw new IllegalArgumentException("invalid exponent " + exponent + " for exponentSize=" + exponentSize);
+        }
+        if ((fractionSize == 63 & fraction < 0) || (fractionSize < 63 & fraction >= (1L << fractionSize))) {
+            throw new IllegalArgumentException("invalid fraction " + fraction + " for fractionSize=" + fractionSize);
+        }
     }
 
     @Override
@@ -124,6 +147,33 @@ public class LongUnum extends AbstractUnum<Long> {
     }
 
     @Override
+    public LongUnum getLowerBound() {
+        if (isExact() || isPositive()) {
+            return this;
+        }
+        return nextExact();
+    }
+
+    @Override
+    public LongUnum getUpperBound() {
+        if (isExact() || isNegative()) {
+            return this;
+        }
+        return nextExact();
+    }
+
+    private LongUnum nextExact() {
+        if (fraction != MAX_FRACTION) {
+            return new LongUnum(sign, exponent, fraction + 1, UBIT_EXACT, exponentSize, fractionSize);
+        }
+        if (exponent != MAX_EXPONENT) {
+            return new LongUnum(sign, exponent + 1, 0, UBIT_EXACT, exponentSize, fractionSize);
+        }
+        //NaN
+        return this;
+    }
+
+    @Override
     public long longValue() {
         return 0;
     }
@@ -137,11 +187,7 @@ public class LongUnum extends AbstractUnum<Long> {
             //exact
             if (exponent != MAX_EXPONENT | fraction != MAX_FRACTION) {
                 //finite
-                final int bias = (1 << (exponentSize-1)) - 1;
-                final int hidden = exponent == 0 ? 0 : 1;
-                final int expovalue = exponent - bias + 1 - hidden;
-                final double abs = Math.scalb(hidden + Math.scalb(fraction, -fractionSize), expovalue);
-                return sign >= 0 ? abs : -abs;
+                return doubleValueExact(sign, fraction, fractionSize, exponent, exponentSize);
             }
             //infinite
             return sign >= 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
@@ -160,6 +206,39 @@ public class LongUnum extends AbstractUnum<Long> {
         return sign >= 0 ? DoubleConsts.QNAN : DoubleConsts.SNAN;
     }
 
+    public BigDecimal bigDecimalValueExact() {
+        if (isExact() && isFinite()) {
+            return bigDecimalValueExact(sign, fraction, fractionSize, exponent, exponentValue());
+        }
+        throw new ArithmeticException("not exact or not finite: " + this);
+    }
+
+    private int exponentValue() {
+        return exponentValue(exponent, exponentSize);
+    }
+    private static int exponentValue(final int exponent, final int exponentSize) {
+        final int bias = (1 << (exponentSize - 1)) - 1;
+        final int hidden = exponent == 0 ? 0 : 1;
+        return exponent - bias + 1 - hidden;
+    }
+
+    private static double doubleValueExact(final byte sign, final long fraction, final int fractionSize, final int exponent, final int exponentSize) {
+        final int hidden = exponent == 0 ? 0 : 1;
+        return doubleValueExact(sign, hidden, fraction, fractionSize, exponentValue(exponent, exponentSize));
+    }
+    private static double doubleValueExact(final byte sign, final int hidden, final long fraction, final int fractionSize, final int exponentvalue) {
+        final double abs = Math.scalb(hidden + Math.scalb((double)fraction, -fractionSize), exponentvalue);
+        return sign >= 0 ? abs : -abs;
+    }
+
+    private static BigDecimal bigDecimalValueExact(final byte sign, final long fraction, final int fractionSize, final int exponent, final int expovalue) {
+        final BigDecimal two = BigDecimal.valueOf(2);
+        final BigDecimal scaledFraction = BigDecimal.valueOf(fraction).divide(two.pow(fractionSize));
+        final BigDecimal scaledFractionWithHiddenBit = exponent == 0 ? scaledFraction : BigDecimal.ONE.add(scaledFraction);
+        final BigDecimal abs = scaledFractionWithHiddenBit.multiply(two.pow(expovalue));
+        return sign >= 0 ? abs : abs.negate();
+    }
+
     @Override
     public int compareTo(Unum<Long> o) {
         return 0;
@@ -174,8 +253,16 @@ public class LongUnum extends AbstractUnum<Long> {
             //exact
             if (exponent != MAX_EXPONENT | fraction != MAX_FRACTION) {
                 //finite
-                //FIXME handle double under/overflow
-                return Double.toString(doubleValue(sign, exponent, fraction, ubit, exponentSize, fractionSize));
+                final int bias = (1 << (exponentSize - 1)) - 1;
+                final int hidden = exponent == 0 ? 0 : 1;
+                final int expovalue = exponent - bias + 1 - hidden;
+                if (0 == (fraction & EXACT_DOUBLE_FRACTION_MASK)) {
+                    if (expovalue >= Double.MIN_EXPONENT & expovalue <= Double.MAX_EXPONENT) {
+                        return Double.toString(doubleValueExact(sign, hidden, fraction, fractionSize, expovalue));
+                    }
+                }
+                return bigDecimalValueExact(sign, fraction, fractionSize, exponent, expovalue).toString();
+
             }
             //infinite
             return sign >= 0 ? "Inf" : "-Inf";
@@ -202,5 +289,8 @@ public class LongUnum extends AbstractUnum<Long> {
         System.out.println("TEN=\t" + LongUnum.TEN);
         System.out.println("INF=\t" + LongUnum.INF);
         System.out.println("NAN=\t" + LongUnum.NAN);
+        System.out.println("(1*)=\t" + new LongUnum(SIGN_POSITIVE, 0, 1, UBIT_INEXACT, (byte)1, (byte)1));
+        System.out.println("(2*)=\t" + new LongUnum(SIGN_POSITIVE, 1, 0, UBIT_INEXACT, (byte)1, (byte)1));
+        System.out.println("(3*)=\t" + new LongUnum(SIGN_POSITIVE, 1, 1, UBIT_INEXACT, (byte)1, (byte)1));
     }
 }

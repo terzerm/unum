@@ -44,6 +44,9 @@ public interface Unum<F> extends Serializable, Comparable<Unum<F>> {
     F getFraction();
     int getFractionSize();
 
+    Unum<F> getLowerBound();
+    Unum<F> getUpperBound();
+
     @Override
     int compareTo(Unum<F> o);
 
