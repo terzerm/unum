@@ -26,7 +26,7 @@ package org.tools4j.unum.api;
 /**
  * An universial number.
  */
-abstract public class AbstractUnum extends Number implements Unum {
+abstract public class AbstractUnum<U extends AbstractUnum<U>> extends Number implements Unum<U> {
 
     @Override
     public int intValue() {

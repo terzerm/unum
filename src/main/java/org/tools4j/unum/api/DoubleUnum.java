@@ -28,29 +28,55 @@ import java.io.Serializable;
 /**
  * A Universal number backed by a double.
  */
-public class DUnum extends AbstractUnum implements Serializable, Comparable<DUnum> {
+public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable {
 
     private static final long UBIT_MASK = 0x0000000000000001L;
 
-    public static final DUnum ZERO  = new DUnum(0.0);
-    public static final DUnum ONE   = new DUnum(1.0);
-    public static final DUnum TWO   = new DUnum(2.0);
-    public static final DUnum TEN   = new DUnum(10.0);
-    public static final DUnum QNAN  = new DUnum(DoubleConsts.QNAN);
-    public static final DUnum SNAN  = new DUnum(DoubleConsts.SNAN);
+    public static final DoubleUnum ZERO  = new DoubleUnum(0.0);
+    public static final DoubleUnum ONE   = new DoubleUnum(1.0);
+    public static final DoubleUnum TWO   = new DoubleUnum(2.0);
+    public static final DoubleUnum TEN   = new DoubleUnum(10.0);
+    public static final DoubleUnum QNAN  = new DoubleUnum(Doubles.QNAN);
+    public static final DoubleUnum SNAN  = new DoubleUnum(Doubles.SNAN);
+
+    public static final Factory<DoubleUnum> FACTORY = new Factory<DoubleUnum>() {
+        @Override
+        public DoubleUnum qNaN() {
+            return QNAN;
+        }
+
+        @Override
+        public DoubleUnum sNaN() {
+            return SNAN;
+        }
+
+        @Override
+        public DoubleUnum zero() {
+            return ZERO;
+        }
+
+        @Override
+        public DoubleUnum one() {
+            return ONE;
+        }
+    };
+
+    public static final DoubleUnum signedNaN(final double sign) {
+        return isSignNegative(sign) ? SNAN : QNAN;
+    }
 
     private final double value;
 
-    private DUnum(final double value) {
+    private DoubleUnum(final double value) {
         this.value = value;
     }
 
-    public static final DUnum valueOf(final double value) {
-        return new DUnum(value);
+    public static final DoubleUnum valueOf(final double value) {
+        return new DoubleUnum(value);
     }
 
-    public static final DUnum exactValueOf(final double value) {
-        return new DUnum(exact(value));
+    public static final DoubleUnum exactValueOf(final double value) {
+        return new DoubleUnum(exact(value));
     }
 
     public static final double exact(final double value) {
@@ -59,14 +85,14 @@ public class DUnum extends AbstractUnum implements Serializable, Comparable<DUnu
             if (0 == (raw & UBIT_MASK)) {
                 return value;
             }
-            return Double.longBitsToDouble(raw & ~UBIT_MASK);
+            return Double.longBitsToDouble(raw >= 0 ? raw+1 : raw-1);
         }
         //NaN or Infinite
         return raw >= 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
     }
 
-    public static final DUnum inexactValueOf(final double value) {
-        return new DUnum(inexact(value));
+    public static final DoubleUnum inexactValueOf(final double value) {
+        return new DoubleUnum(inexact(value));
     }
     public static final double inexact(final double value) {
         final long raw = Double.doubleToRawLongBits(value);
@@ -74,15 +100,30 @@ public class DUnum extends AbstractUnum implements Serializable, Comparable<DUnu
             if (0 != (raw & UBIT_MASK)) {
                 return value;
             }
-            return Double.longBitsToDouble(raw | UBIT_MASK);
+            return Double.longBitsToDouble(raw >= 0 ? raw+1 : raw-1);
         }
         //NaN or Infinite
-        return raw >= 0 ? DoubleConsts.QNAN : DoubleConsts.SNAN;
+        return raw >= 0 ? Doubles.QNAN : Doubles.SNAN;
+    }
+
+    @Override
+    public Factory<DoubleUnum> getFactory() {
+        return FACTORY;
+    }
+
+    @Override
+    public int intValue() {
+        return (int)value;
     }
 
     @Override
     public long longValue() {
         return (long)value;
+    }
+
+    @Override
+    public float floatValue() {
+        return (float)value;
     }
 
     @Override
@@ -147,79 +188,92 @@ public class DUnum extends AbstractUnum implements Serializable, Comparable<DUnu
         return value == 0;
     }
 
-    public DUnum nextUp() {
-        return new DUnum(nextUp(value));
+    public DoubleUnum nextUp() {
+        return new DoubleUnum(nextUp(value));
     }
 
     public static double nextUp(final double value) {
         if (value == Double.POSITIVE_INFINITY) {
-            return DoubleConsts.QNAN;
+            return Doubles.QNAN;
         }
         if (Double.isNaN(value)) {
-            return isSignNegative(value) ? Double.NEGATIVE_INFINITY : DoubleConsts.QNAN;
+            return isSignNegative(value) ? Double.NEGATIVE_INFINITY : Doubles.QNAN;
         }
         return Math.nextUp(value);
     }
 
-    public DUnum nextDown() {
-        return new DUnum(nextDown(value));
+    public DoubleUnum nextDown() {
+        return new DoubleUnum(nextDown(value));
     }
 
     public static double nextDown(final double value) {
         if (value == Double.NEGATIVE_INFINITY) {
-            return DoubleConsts.SNAN;
+            return Doubles.SNAN;
         }
         if (Double.isNaN(value)) {
-            return isSignNegative(value) ? DoubleConsts.SNAN: Double.POSITIVE_INFINITY;
+            return isSignNegative(value) ? Doubles.SNAN: Double.POSITIVE_INFINITY;
         }
         return Math.nextDown(value);
     }
     @Override
-    public DUnum getLowerBound() {
-        if (isPositive() | isExact() | isNaN()) {
+    public DoubleUnum getLowerBound() {
+        if (isExact() | isNaN()) {
             return this;
         }
-        return new DUnum(Math.nextDown(value));
+        return new DoubleUnum(value > 0 ? Math.nextDown(value) : Math.nextUp(value));
     }
 
     public static double getLowerBound(final double value) {
-        if (value > 0 | isExact(value) | Double.isNaN(value)) {
+        if (isExact(value) | Double.isNaN(value)) {
             return value;
         }
-        return Math.nextDown(value);
+        return value > 0 ? Math.nextDown(value) : Math.nextUp(value);
     }
 
     @Override
-    public DUnum getUpperBound() {
-        if (isNegative() | isExact() | isNaN()) {
+    public DoubleUnum getUpperBound() {
+        if (isExact() | isNaN()) {
             return this;
         }
-        return new DUnum(Math.nextUp(value));
+        return new DoubleUnum(value > 0 ? Math.nextUp(value) : Math.nextDown(value));
     }
 
     public static double getUpperBound(final double value) {
         if (value < 0 | isExact(value) | Double.isNaN(value)) {
             return value;
         }
-        return Math.nextUp(value);
+        return value > 0 ? Math.nextUp(value) : Math.nextDown(value);
     }
 
     @Override
-    public int compareTo(DUnum o) {
-        return compare(value, o.value);
+    public DoubleUnum intervalSize() {
+        final double size = intervalSize(value);
+        return size == 0 ? ZERO : DoubleUnum.valueOf(size);
     }
 
-    public int compare(final double a, final double b) {
+    public static double intervalSize(final double value) {
+        if (isExact(value)) {
+            return 0.0;
+        }
+        if (Double.isNaN(value)) {
+            return Doubles.signedNaN(value);
+        }
+        if (value >= 0) {
+            return nextUp(value) - value;
+        } else {
+            return value - nextDown(value);
+        }
+    }
+
+    @Override
+    public int compareTo(final DoubleUnum other) {
+        return compare(value, other.value);
+    }
+
+    public static int compare(final double a, final double b) {
         if (a < b) return -1;
         if (a > b) return 1;
-
-        final boolean aNotNaN = a == a;
-        final boolean bNotNaN = b == b;
-
-        //equal, but exclude NaN's
-        if (a == b & aNotNaN & bNotNaN) {
-            return 0;
-        }
+        if (a == b) return 0;
 
         //at least one is NaN
         final long araw = Double.doubleToRawLongBits(a);
@@ -231,15 +285,35 @@ public class DUnum extends AbstractUnum implements Serializable, Comparable<DUnu
         if (braw < 0 & araw >= 0) return 1;
 
         //same sign
-        if (aNotNaN) {
+        if (a == a) {
+            //a is not NaN
             return araw >= 0 ? -1 : 1;
         }
-        if (bNotNaN) {
+        if (b == b) {
+            //b is not NaN
             return braw >= 0 ? 1 : -1;
         }
 
-        //both NaN
+        //both NaN, same sign
         return 0;
+    }
+
+    @Override
+    public DoubleUnum min(final DoubleUnum other) {
+        return compareTo(other) <= 0 ? this : other;
+    }
+
+    public static double min(final double a, final double b) {
+        return compare(a, b) <= 0 ? a : b;
+    }
+
+    @Override
+    public DoubleUnum max(final DoubleUnum other) {
+        return compareTo(other) >= 0 ? this : other;
+    }
+
+    public static double max(final double a, final double b) {
+        return compare(a, b) >= 0 ? a : b;
     }
 
     @Override
@@ -248,11 +322,11 @@ public class DUnum extends AbstractUnum implements Serializable, Comparable<DUnu
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == this) return true;
         if (obj == null) return false;
         if (getClass() == obj.getClass()) {
-            return 0 == compareTo((DUnum)obj);
+            return 0 == compareTo((DoubleUnum)obj);
         }
         return false;
     }
@@ -262,7 +336,7 @@ public class DUnum extends AbstractUnum implements Serializable, Comparable<DUnu
         return toString(value);
     }
 
-    public static String toString(double value) {
+    public static String toString(final double value) {
         if (isExact(value)) {
             return String.valueOf(value);
         }
@@ -279,26 +353,26 @@ public class DUnum extends AbstractUnum implements Serializable, Comparable<DUnu
     public static void main(String... args) {
         System.out.println("*** valueOf");
         for (int i = -10; i < 10; i++) {
-            System.out.println(DUnum.valueOf(i));
+            System.out.println(DoubleUnum.valueOf(i));
         }
         System.out.println("*** exactValueOf");
         for (int i = -10; i < 10; i++) {
-            System.out.println(DUnum.exactValueOf(i));
+            System.out.println(DoubleUnum.exactValueOf(i));
         }
         System.out.println("*** inexactValueOf");
         for (int i = -10; i < 10; i++) {
-            System.out.println(DUnum.inexactValueOf(i));
+            System.out.println(DoubleUnum.inexactValueOf(i));
         }
         System.out.println("*** valueOf/nextDown");
         for (int i = -10; i < 10; i++) {
-            System.out.println(DUnum.valueOf(Math.nextDown((double)i)));
+            System.out.println(DoubleUnum.valueOf(Math.nextDown((double)i)));
         }
         System.out.println("*** specials");
         System.out.println(+0.0);
         System.out.println(-0.0);
-        System.out.println(DUnum.valueOf(Double.POSITIVE_INFINITY));
-        System.out.println(DUnum.valueOf(Double.NEGATIVE_INFINITY));
-        System.out.println(DUnum.QNAN);
-        System.out.println(DUnum.SNAN);
+        System.out.println(DoubleUnum.valueOf(Double.POSITIVE_INFINITY));
+        System.out.println(DoubleUnum.valueOf(Double.NEGATIVE_INFINITY));
+        System.out.println(DoubleUnum.QNAN);
+        System.out.println(DoubleUnum.SNAN);
     }
 }

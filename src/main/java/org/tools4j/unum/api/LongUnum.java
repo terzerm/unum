@@ -30,7 +30,7 @@ import java.math.BigDecimal;
  * An universial number where the fraction fits in a 64bit long value. The fraction size is therefore at most 64 bits
  * and the fraction size contains 6 bits. The exponent fits in 16 bits and the exponent size contains 4 bits.
  */
-public class LongUnum extends AbstractUnum implements Serializable, Comparable<LongUnum> {
+public class LongUnum extends AbstractUnum<LongUnum> implements Serializable {
 
     private static final byte SIGN_POSITIVE = 0;
     private static final byte SIGN_NEGATIVE = -1;
@@ -84,6 +84,11 @@ public class LongUnum extends AbstractUnum implements Serializable, Comparable<L
         if ((fractionSize == 63 & fraction < 0) || (fractionSize < 63 & fraction >= (1L << fractionSize))) {
             throw new IllegalArgumentException("invalid fraction " + fraction + " for fractionSize=" + fractionSize);
         }
+    }
+
+    @Override
+    public Factory<LongUnum> getFactory() {
+        throw new RuntimeException("not implemented");
     }
 
     @Override
@@ -147,6 +152,21 @@ public class LongUnum extends AbstractUnum implements Serializable, Comparable<L
         return nextExact();
     }
 
+    @Override
+    public LongUnum nextDown() {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public LongUnum nextUp() {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public LongUnum intervalSize() {
+        throw new RuntimeException("not implemented");
+    }
+
     private LongUnum nextExact() {
         if (fraction != MAX_FRACTION) {
             return new LongUnum(sign, exponent, fraction + 1, UBIT_EXACT, exponentSize, fractionSize);
@@ -188,7 +208,7 @@ public class LongUnum extends AbstractUnum implements Serializable, Comparable<L
                     doubleValue(sign, exponent + 1, 0, UBIT_EXACT, exponentSize, fractionSize))/2;
         }
         //NaN
-        return sign >= 0 ? DoubleConsts.QNAN : DoubleConsts.SNAN;
+        return sign >= 0 ? Doubles.QNAN : Doubles.SNAN;
     }
 
     public BigDecimal bigDecimalValueExact() {
@@ -228,6 +248,16 @@ public class LongUnum extends AbstractUnum implements Serializable, Comparable<L
     @Override
     public int compareTo(LongUnum o) {
         return 0;
+    }
+
+    @Override
+    public LongUnum min(LongUnum other) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public LongUnum max(LongUnum other) {
+        throw new RuntimeException("not implemented");
     }
 
     @Override

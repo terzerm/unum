@@ -24,20 +24,17 @@
 package org.tools4j.unum.api;
 
 /**
- * Created by terz on 9/05/2016.
+ * Created by terz on 12/05/2016.
  */
-public class Env {
-    private final int exponentSizeBits;
-    private final int fractionSizeBits;
-
-    public Env(final int exponentSizeBits, final int fractionSizeBits) {
-        if (exponentSizeBits < 1 || exponentSizeBits > 31) {
-            throw new IllegalArgumentException("Illegal number of exponentSizeBits=" + exponentSizeBits + " not in [1,31]");
-        }
-        if (fractionSizeBits < 1) {
-            throw new IllegalArgumentException("Illegal number of fractionSizeBits=" + fractionSizeBits + " not in [1," + Integer.MAX_VALUE + "]");
-        }
-        this.exponentSizeBits = exponentSizeBits;
-        this.fractionSizeBits = fractionSizeBits;
+public interface Factory<U extends Unum<U>> {
+    U qNaN();
+    U sNaN();
+    U zero();
+    U one();
+    default Ubound<U> empty() {
+        return ubound(qNaN(), qNaN());
+    }
+    default Ubound<U> ubound(U lower, U upper) {
+        return Ubound.create(lower, upper);
     }
 }

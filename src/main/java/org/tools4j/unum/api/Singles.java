@@ -23,47 +23,23 @@
  */
 package org.tools4j.unum.api;
 
-import java.io.Serializable;
-
 /**
- * An universial number.
+ * Created by terz on 9/05/2016.
  */
-public interface Unum<U extends Unum<U>> extends Comparable<U> {
+public class Singles {
 
-    Factory<U> getFactory();
-    boolean isNaN();
-    boolean isInfinite();
-    boolean isFinite();
-    boolean isExact();
-    boolean isInexact();
-    boolean isNegative();
-    boolean isPositive();
-    boolean isSignNegative();
-    boolean isZero();
+    public static final float QNAN = Float.NaN;
+    public static final float SNAN = Float.intBitsToFloat(Float.floatToRawIntBits(Float.NaN) | Integer.MIN_VALUE);
 
-    U getLowerBound();
-    U getUpperBound();
-    U nextDown();
-    U nextUp();
-    U intervalSize();
+    public static final float signedNaN(final float sign) {
+        return sign < 0 || Float.floatToRawIntBits(sign) < 0 ? SNAN : QNAN;
+    }
 
-    float floatValue();
-    double doubleValue();
-    int intValue();
-    long longValue();
+    public static final boolean isQuietNaN(final float value) {
+        return Float.isNaN(value) && Float.floatToRawIntBits(value) >= 0;
+    }
 
-    @Override
-    int hashCode();
-
-    @Override
-    boolean equals(Object obj);
-
-    @Override
-    int compareTo(U other);
-
-    U min(U other);
-    U max(U other);
-
-    @Override
-    String toString();
+    public static final boolean isSignalingNaN(final float value) {
+        return Float.isNaN(value) && Float.floatToRawIntBits(value) < 0;
+    }
 }

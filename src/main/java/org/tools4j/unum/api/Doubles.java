@@ -26,8 +26,20 @@ package org.tools4j.unum.api;
 /**
  * Created by terz on 9/05/2016.
  */
-public class DoubleConsts {
+public class Doubles {
 
     public static final double QNAN = Double.NaN;
     public static final double SNAN = Double.longBitsToDouble(Double.doubleToRawLongBits(Double.NaN) | Long.MIN_VALUE);
+
+    public static final double signedNaN(final double sign) {
+        return sign < 0 || Double.doubleToRawLongBits(sign) < 0 ? SNAN : QNAN;
+    }
+
+    public static final boolean isQuietNaN(final double value) {
+        return Double.isNaN(value) && Double.doubleToRawLongBits(value) >= 0;
+    }
+
+    public static final boolean isSignalingNaN(final double value) {
+        return Double.isNaN(value) && Double.doubleToRawLongBits(value) < 0;
+    }
 }
