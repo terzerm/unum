@@ -5,11 +5,11 @@ apply plugin: 'license'
 sourceCompatibility = 1.8
 group = "org.tools4j"
 version = '1.0.1-SNAPSHOT'
-archivesBaseName = "unum4j"
+archivesBaseName = "unum"
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'unum4j', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'unum', 'Implementation-Version': version
     }
 }
 
@@ -78,7 +78,7 @@ javadoc {
 	options.showFromPackage()
 	options.linkSource()
 	options.links("http://docs.oracle.com/javase/8/docs/api/");
-	options.windowTitle = "unum4j API ${version}"
+	options.windowTitle = "unum API ${version}"
 	options.overview = "src/main/java/overview.html";
 }
 
@@ -125,16 +125,16 @@ if (project.hasProperty('upload')) {
             		}
             		
             		pom.project {
-						name 'unum4j'
+						name 'unum'
 						packaging 'jar'
 						// optionally artifactId can be defined here 
 						description 'Java library for unuversial number (unum) arithmetic.'
-						url 'https://github.com/tools4j/unum4j'
+						url 'https://github.com/tools4j/unum'
 
         				scm {
-        					connection 'scm:git:git@github.com:tools4j/unum4j.git'
-        					developerConnection 'scm:git:git@github.com:tools4j/unum4j.git'
-        					url 'git@github.com:tools4j/unum4j.git'
+        					connection 'scm:git:git@github.com:tools4j/unum.git'
+        					developerConnection 'scm:git:git@github.com:tools4j/unum.git'
+        					url 'git@github.com:tools4j/unum.git'
         				}
         				licenses {
         					license {
