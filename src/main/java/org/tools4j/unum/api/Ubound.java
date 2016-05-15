@@ -30,23 +30,82 @@ package org.tools4j.unum.api;
  */
 public interface Ubound<U extends Unum<U>> {
     enum Boundery {
+        /** An closed/closed interval such as [2, 3] which includes both endpoints 2 and 3.*/
         CLOSED_CLOSED,
+        /** An open/open interval such as (2, 3) which includes neither of the endpoints of 2 or 3.*/
         OPEN_OPEN,
+        /** An open/closed interval such as (2, 3] which doesn't include endpoint 2 but includes 3.*/
         OPEN_CLOSED,
+        /** An open/closed interval such as [2, 3) which includes endpoint 2 but not 3.*/
         CLOSED_OPEN;
     }
     enum Overlap {
         /*order of constants matters!*/
+
+        /**
+         * Empty because of a NaN.
+         * <p>
+         * An example is the intersection of (2, 3] and (NaN).
+         */
         EMPTY,
+        /**
+         * Empty because two ubounds are apart and non-touching
+         * <p>
+         * An example is the intersection of (2, 3] and (4, 5).
+         */
         APART,
+        /**
+         * Empty, but the two ubounds are touching, which means one boundary is common but open for at least one of the
+         * ubounds.
+         * <p>
+         * An example is the intersection of (2, 3] and (3, 4).
+         */
         NEARLY_TOUCHING,
+        /**
+         * Touching with a single-point overlap. The touching point is a closed end for both ubounds.
+         * <p>
+         * An example is the intersection of (2, 3] and [3, 4); note that the intersection of (2, 3] and [3] is
+         * CONTAINING, not TOUCHING.
+         */
         TOUCHING,
+        /**
+         * Two overlapping ubounds with more than one common points.
+         * <p>
+         * An example is the intersection of (2, 3] and (2.5, 4).
+         */
         OVERLAPPING,
+        /**
+         * One ubound contains the other.
+         * <p>
+         * Examples are the intersection of:
+         * <ul>
+         *     <li>(2, 3] and [2.5, 2.75]</li>
+         *     <li>(2, 3] and (2, 3)</li>
+         *     <li>(2, 3] and [3]</li>
+         * </ul>
+         */
         CONTAINING,
+        /**
+         * The two ubounds are equal and non-empty.
+         * <p>
+         * An example is the intersection of (2, 3) and (2, 3); note that the intersection of (NaN) and (NaN) is EMPTY,
+         * not EQUAL.
+         */
         EQUAL;
+
+        /**
+         * True if the intersection of two ubounds is empty, which is true if an a (NaN) ubound is involved or if the
+         * intersection does not overlap.
+         * @return true if two bounds are nowhere equal, which includes the intersection with an empty (NaN) ubound.
+         */
         public final boolean isNowhereEqual() {
             return ordinal() < TOUCHING.ordinal();
         }
+
+        /**
+         * True if the intersection of two ubounds is non-empty.
+         * @return true if two bounds are somewhere equal, which means have at least one point in common.
+         */
         public final boolean isSomewhereEqual() {
             return ordinal() >= TOUCHING.ordinal();
         }
@@ -67,6 +126,9 @@ public interface Ubound<U extends Unum<U>> {
     }
     default boolean isEmpty() {
         return getLowerBound().isNaN() || getUpperBound().isNaN();
+    }
+    default boolean isSinglePoint() {
+        return getLowerBound().isExact() && 0 == getLowerBound().compareTo(getUpperBound());
     }
     default boolean isLowerClosed() {
         return getLowerBound().isExact();

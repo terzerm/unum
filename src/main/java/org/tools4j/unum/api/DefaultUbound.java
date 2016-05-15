@@ -66,8 +66,10 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
         if (cmp < 0) {
             return Overlap.APART;
         } else if (cmp == 0) {
-            return minUpper.getUpperBound().isInexact() || maxLower.getLowerBound().isInexact() ?
-                    Overlap.NEARLY_TOUCHING : Overlap.TOUCHING;
+            if (minUpper.getUpperBound().isInexact() || maxLower.getLowerBound().isInexact()) {
+                return Overlap.NEARLY_TOUCHING;
+            }
+            return (minUpper.isSinglePoint() || maxLower.isSinglePoint()) ? Overlap.CONTAINING : Overlap.TOUCHING;
         }
 
         if (minUpper == maxLower) {
