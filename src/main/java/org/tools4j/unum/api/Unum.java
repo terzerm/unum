@@ -45,7 +45,7 @@ public interface Unum<U extends Unum<U>> extends Comparable<U> {
     U getUpperBound();
     U nextDown();
     U nextUp();
-    U intervalSize();
+    U intervalWidth();
 
     float floatValue();
     double doubleValue();
@@ -63,6 +63,9 @@ public interface Unum<U extends Unum<U>> extends Comparable<U> {
 
     U min(U other);
     U max(U other);
+
+    U negate();
+    U abs();
 
     @Override
     String toString();

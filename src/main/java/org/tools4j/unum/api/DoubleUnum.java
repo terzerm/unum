@@ -246,23 +246,19 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
     }
 
     @Override
-    public DoubleUnum intervalSize() {
-        final double size = intervalSize(value);
+    public DoubleUnum intervalWidth() {
+        final double size = intervalWidth(value);
         return size == 0 ? ZERO : DoubleUnum.valueOf(size);
     }
 
-    public static double intervalSize(final double value) {
+    public static double intervalWidth(final double value) {
         if (isExact(value)) {
             return 0.0;
         }
         if (Double.isNaN(value)) {
             return Doubles.signedNaN(value);
         }
-        if (value >= 0) {
-            return nextUp(value) - value;
-        } else {
-            return value - nextDown(value);
-        }
+        return nextUp(value) - nextDown(value);
     }
 
     @Override
@@ -314,6 +310,16 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
 
     public static double max(final double a, final double b) {
         return compare(a, b) >= 0 ? a : b;
+    }
+
+    @Override
+    public DoubleUnum negate() {
+        return new DoubleUnum(-value);
+    }
+
+    @Override
+    public DoubleUnum abs() {
+        return value >= 0 ? this : value < 0 ? negate() : this /*NaN*/;
     }
 
     @Override

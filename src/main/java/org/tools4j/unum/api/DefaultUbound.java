@@ -44,16 +44,19 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
         return upper;
     }
 
-    public final U getIntervalWidth() {
+    public final U intervalWidth() {
+        if (lower.equals(upper)) {
+            return lower.intervalWidth();
+        }
         throw new RuntimeException("not implemented");//FIXME
     }
 
-    public final Boundery getBoundery() {
+    public final Boundery boundary() {
         return isLowerClosed() ?
                 (isUpperClosed() ? Boundery.CLOSED_CLOSED : Boundery.CLOSED_OPEN) :
                 (isUpperClosed() ? Boundery.OPEN_CLOSED : Boundery.OPEN_OPEN);
     }
-    public final Overlap getOverlap(final Ubound<U> other) {
+    public final Overlap overlap(final Ubound<U> other) {
         if (isEmpty() || other.isEmpty()) {
             return Overlap.EMPTY;
         }
@@ -120,7 +123,7 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
             //nowhere equal
             return getFactory().empty();
         }
-        return getFactory().ubound(minUpper, maxLower);
+        return getFactory().ubound(maxLower, minUpper);
     }
     public final Ubound<U> span(final Ubound<U> with) {
         if (this == with) {
@@ -158,19 +161,22 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
             return "(qNaN)";
         }
         final StringBuilder sb = new StringBuilder();
-        if (lower.isExact()) {
-            sb.append('[').append(lower);
+        final boolean lowerExact = lower.isExact();
+        if (lowerExact) {
+            sb.append('[');
         } else {
-            sb.append('(').append(lower.getLowerBound());
+            sb.append('(');
         }
-        if (lower.compareTo(upper) == 0) {
-            sb.append("]");
+        sb.append(lower.getLowerBound());
+        if (lowerExact && lower.equals(upper)) {
+            sb.append(']');
         } else {
             sb.append(", ");
+            sb.append(upper.getUpperBound());
             if (upper.isExact()) {
-                sb.append(upper).append(']');
+                sb.append(']');
             } else {
-                sb.append(upper.getUpperBound()).append(')');
+                sb.append(')');
             }
         }
         return sb.toString();

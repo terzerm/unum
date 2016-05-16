@@ -163,7 +163,7 @@ public class LongUnum extends AbstractUnum<LongUnum> implements Serializable {
     }
 
     @Override
-    public LongUnum intervalSize() {
+    public LongUnum intervalWidth() {
         throw new RuntimeException("not implemented");
     }
 
@@ -258,6 +258,16 @@ public class LongUnum extends AbstractUnum<LongUnum> implements Serializable {
     @Override
     public LongUnum max(LongUnum other) {
         throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public LongUnum negate() {
+        return isNaN() ? this : new LongUnum((byte)-sign, exponent, fraction, ubit, exponentSize, fractionSize);
+    }
+
+    @Override
+    public LongUnum abs() {
+        return isNaN() | isPositive() ? this : negate();
     }
 
     @Override

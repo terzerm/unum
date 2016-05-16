@@ -112,9 +112,9 @@ public interface Ubound<U extends Unum<U>> {
     }
     U getLowerBound();
     U getUpperBound();
-    U getIntervalWidth();
-    Boundery getBoundery();
-    Overlap getOverlap(Ubound<U> other);
+    U intervalWidth();
+    Boundery boundary();
+    Overlap overlap(Ubound<U> other);
     boolean isNowhereEqualTo(Ubound<U> other);
     boolean isSomewhereEqualTo(Ubound<U> other);
     boolean isEverywhereEqualTo(Ubound<U> other);
@@ -149,6 +149,9 @@ public interface Ubound<U extends Unum<U>> {
         return isLowerClosed() && isUpperClosed();
     }
 
+    static <U extends Unum<U>> Ubound<U> create(final U unum) {
+        return create(unum, unum);
+    }
     static <U extends Unum<U>> Ubound<U> create(final U lower, final U upper) {
         return new DefaultUbound<U>(lower, upper);
     }

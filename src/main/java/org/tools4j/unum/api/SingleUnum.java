@@ -247,23 +247,19 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
     }
 
     @Override
-    public SingleUnum intervalSize() {
-        final float size = intervalSize(value);
+    public SingleUnum intervalWidth() {
+        final float size = intervalWidth(value);
         return size == 0 ? ZERO : SingleUnum.valueOf(size);
     }
 
-    public static float intervalSize(final float value) {
+    public static float intervalWidth(final float value) {
         if (isExact(value)) {
             return 0.0f;
         }
         if (Float.isNaN(value)) {
             return Singles.signedNaN(value);
         }
-        if (value >= 0) {
-            return nextUp(value) - value;
-        } else {
-            return value - nextDown(value);
-        }
+        return nextUp(value) - nextDown(value);
     }
 
     @Override
@@ -315,6 +311,16 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
 
     public static float max(final float a, final float b) {
         return compare(a, b) >= 0 ? a : b;
+    }
+
+    @Override
+    public SingleUnum negate() {
+        return new SingleUnum(-value);
+    }
+
+    @Override
+    public SingleUnum abs() {
+        return value >= 0 ? this : value < 0 ? negate() : this /*NaN*/;
     }
 
     @Override
@@ -380,11 +386,26 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
         System.out.println(FACTORY.ubound(ONE.nextUp(), TWO.nextDown()));
         System.out.println(FACTORY.ubound(ONE, TWO.nextDown()));
         System.out.println(FACTORY.ubound(ONE.nextUp(), TWO));
+        System.out.println(FACTORY.ubound(ONE, ONE));
+        System.out.println(FACTORY.ubound(ONE.nextUp(), ONE.nextUp()));
+        System.out.println("inter:" + FACTORY.ubound(ONE, TWO).intersect(FACTORY.ubound(ZERO, TWO)));
+        System.out.println("inter:" + FACTORY.ubound(ZERO, ONE.nextUp()).intersect(FACTORY.ubound(ONE, ONE.nextUp().nextUp())));
+        System.out.println("span:" + FACTORY.ubound(ONE, TWO).span(FACTORY.ubound(ZERO, TWO)));
+        System.out.println("span:" + FACTORY.ubound(ZERO, ONE.nextUp()).span(FACTORY.ubound(ONE, ONE.nextUp().nextUp())));
         final SingleUnum neg1 = valueOf(-1.0f);
         final SingleUnum neg2 = valueOf(-2.0f);
         System.out.println(FACTORY.ubound(neg2, neg1));
         System.out.println(FACTORY.ubound(neg2.nextDown(), neg1.nextUp()));
         System.out.println(FACTORY.ubound(neg2, neg1.nextUp()));
         System.out.println(FACTORY.ubound(neg2.nextDown(), neg1));
+        System.out.println(FACTORY.ubound(neg1, neg1));
+        System.out.println(FACTORY.ubound(neg1.nextUp(), neg1.nextUp()));
+        System.out.println("w: " + neg1.intervalWidth());
+        System.out.println("w: " + neg1.nextUp().intervalWidth());
+        System.out.println("w: " + neg1.nextDown().intervalWidth());
+//        System.out.println("w:" + FACTORY.ubound(ONE, TWO).intervalWidth());
+//        System.out.println("w:" + FACTORY.ubound(ONE, TWO.nextUp()).intervalWidth());
+//        System.out.println("w:" + FACTORY.ubound(ONE.nextDown(), TWO).intervalWidth());
+//        System.out.println("w:" + FACTORY.ubound(ONE.nextDown(), TWO.nextUp()).intervalWidth());
     }
 }
