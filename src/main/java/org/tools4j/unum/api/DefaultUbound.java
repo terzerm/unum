@@ -44,9 +44,9 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
         return upper;
     }
 
-    public final U intervalWidth() {
+    public final Ubound<U> intervalWidth() {
         if (lower.equals(upper)) {
-            return lower.intervalWidth();
+            return Ubound.create(lower.intervalWidth());
         }
         throw new RuntimeException("not implemented");//FIXME
     }
@@ -121,9 +121,9 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
         final int cmp = minUpper.compareTo(maxLower);
         if (cmp < 0 || (cmp == 0 && (minUpper.isInexact() || maxLower.isInexact()))) {
             //nowhere equal
-            return getFactory().empty();
+            return getFactory().qNaN();
         }
-        return getFactory().ubound(maxLower, minUpper);
+        return Ubound.create(maxLower, minUpper);
     }
     public final Ubound<U> span(final Ubound<U> with) {
         if (this == with) {
@@ -137,7 +137,7 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
         }
         final U minLower = getLowerBound().compareTo(with.getLowerBound()) <= 0 ? getLowerBound() : with.getLowerBound();
         final U maxUpper = getUpperBound().compareTo(with.getUpperBound()) >= 0 ? getUpperBound() : with.getUpperBound();
-        return getFactory().ubound(minLower, maxUpper);
+        return Ubound.create(minLower, maxUpper);
     }
 
     @Override

@@ -24,17 +24,11 @@
 package org.tools4j.unum.api;
 
 /**
- * Created by terz on 12/05/2016.
+ * Factory for {@link Unum} or {@link Ubound}.
  */
-public interface Factory<U extends Unum<U>> {
+public interface Factory<U> {
     U qNaN();
     U sNaN();
     U zero();
     U one();
-    default Ubound<U> empty() {
-        return ubound(qNaN(), qNaN());
-    }
-    default Ubound<U> ubound(U lower, U upper) {
-        return Ubound.create(lower, upper);
-    }
 }

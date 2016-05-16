@@ -92,6 +92,11 @@ public class LongUnum extends AbstractUnum<LongUnum> implements Serializable {
     }
 
     @Override
+    public Factory<Ubound<LongUnum>> getUboundFactory() {
+        return null;
+    }
+
+    @Override
     public boolean isNaN() {
         return ubit == UBIT_INEXACT & exponent == MAX_EXPONENT & fraction == MAX_FRACTION;
     }

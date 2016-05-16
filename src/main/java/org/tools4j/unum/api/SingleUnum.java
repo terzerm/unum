@@ -36,8 +36,15 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
     public static final SingleUnum ONE   = new SingleUnum(1.0f);
     public static final SingleUnum TWO   = new SingleUnum(2.0f);
     public static final SingleUnum TEN   = new SingleUnum(10.0f);
+    public static final SingleUnum POSITIVE_INFINITY = new SingleUnum(Float.POSITIVE_INFINITY);
+    public static final SingleUnum NEGATIVE_INFINITY = new SingleUnum(Float.NEGATIVE_INFINITY);
     public static final SingleUnum QNAN  = new SingleUnum(Singles.QNAN);
     public static final SingleUnum SNAN  = new SingleUnum(Singles.SNAN);
+
+    public static final Ubound<SingleUnum> UBOUND_ZERO = Ubound.create(ZERO);
+    public static final Ubound<SingleUnum> UBOUND_ONE = Ubound.create(ONE);
+    public static final Ubound<SingleUnum> UBOUND_QNAN = Ubound.create(QNAN);
+    public static final Ubound<SingleUnum> UBOUND_SNAN = Ubound.create(SNAN);
 
     public static final Factory<SingleUnum> FACTORY = new Factory<SingleUnum>() {
         @Override
@@ -58,6 +65,25 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
         @Override
         public SingleUnum one() {
             return ONE;
+        }
+    };
+
+    public static final Factory<Ubound<SingleUnum>> UBOUND_FACTORY = new Factory<Ubound<SingleUnum>>() {
+        @Override
+        public Ubound<SingleUnum> qNaN() {
+            return UBOUND_QNAN;
+        }
+        @Override
+        public Ubound<SingleUnum> sNaN() {
+            return UBOUND_SNAN;
+        }
+        @Override
+        public Ubound<SingleUnum> zero() {
+            return UBOUND_ZERO;
+        }
+        @Override
+        public Ubound<SingleUnum> one() {
+            return UBOUND_ONE;
         }
     };
 
@@ -109,6 +135,11 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
     @Override
     public Factory<SingleUnum> getFactory() {
         return FACTORY;
+    }
+
+    @Override
+    public Factory<Ubound<SingleUnum>> getUboundFactory() {
+        return UBOUND_FACTORY;
     }
 
     @Override
@@ -254,7 +285,7 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
 
     public static float intervalWidth(final float value) {
         if (isExact(value)) {
-            return 0.0f;
+            return Float.isFinite(value) ? 0.0f : Float.POSITIVE_INFINITY;
         }
         if (Float.isNaN(value)) {
             return Singles.signedNaN(value);
@@ -381,31 +412,33 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
         System.out.println(SingleUnum.valueOf(Float.NEGATIVE_INFINITY));
         System.out.println(SingleUnum.QNAN);
         System.out.println(SingleUnum.SNAN);
-        System.out.println(FACTORY.empty());
-        System.out.println(FACTORY.ubound(ONE, TWO));
-        System.out.println(FACTORY.ubound(ONE.nextUp(), TWO.nextDown()));
-        System.out.println(FACTORY.ubound(ONE, TWO.nextDown()));
-        System.out.println(FACTORY.ubound(ONE.nextUp(), TWO));
-        System.out.println(FACTORY.ubound(ONE, ONE));
-        System.out.println(FACTORY.ubound(ONE.nextUp(), ONE.nextUp()));
-        System.out.println("inter:" + FACTORY.ubound(ONE, TWO).intersect(FACTORY.ubound(ZERO, TWO)));
-        System.out.println("inter:" + FACTORY.ubound(ZERO, ONE.nextUp()).intersect(FACTORY.ubound(ONE, ONE.nextUp().nextUp())));
-        System.out.println("span:" + FACTORY.ubound(ONE, TWO).span(FACTORY.ubound(ZERO, TWO)));
-        System.out.println("span:" + FACTORY.ubound(ZERO, ONE.nextUp()).span(FACTORY.ubound(ONE, ONE.nextUp().nextUp())));
+        System.out.println(UBOUND_FACTORY.qNaN());
+        System.out.println(Ubound.create(ONE, TWO));
+        System.out.println(Ubound.create(ONE.nextUp(), TWO.nextDown()));
+        System.out.println(Ubound.create(ONE, TWO.nextDown()));
+        System.out.println(Ubound.create(ONE.nextUp(), TWO));
+        System.out.println(Ubound.create(ONE, ONE));
+        System.out.println(Ubound.create(ONE.nextUp(), ONE.nextUp()));
+        System.out.println("inter:" + Ubound.create(ONE, TWO).intersect(Ubound.create(ZERO, TWO)));
+        System.out.println("inter:" + Ubound.create(ZERO, ONE.nextUp()).intersect(Ubound.create(ONE, ONE.nextUp().nextUp())));
+        System.out.println("span:" + Ubound.create(ONE, TWO).span(Ubound.create(ZERO, TWO)));
+        System.out.println("span:" + Ubound.create(ZERO, ONE.nextUp()).span(Ubound.create(ONE, ONE.nextUp().nextUp())));
         final SingleUnum neg1 = valueOf(-1.0f);
         final SingleUnum neg2 = valueOf(-2.0f);
-        System.out.println(FACTORY.ubound(neg2, neg1));
-        System.out.println(FACTORY.ubound(neg2.nextDown(), neg1.nextUp()));
-        System.out.println(FACTORY.ubound(neg2, neg1.nextUp()));
-        System.out.println(FACTORY.ubound(neg2.nextDown(), neg1));
-        System.out.println(FACTORY.ubound(neg1, neg1));
-        System.out.println(FACTORY.ubound(neg1.nextUp(), neg1.nextUp()));
+        System.out.println(Ubound.create(neg2, neg1));
+        System.out.println(Ubound.create(neg2.nextDown(), neg1.nextUp()));
+        System.out.println(Ubound.create(neg2, neg1.nextUp()));
+        System.out.println(Ubound.create(neg2.nextDown(), neg1));
+        System.out.println(Ubound.create(neg1, neg1));
+        System.out.println(Ubound.create(neg1.nextUp(), neg1.nextUp()));
         System.out.println("w: " + neg1.intervalWidth());
         System.out.println("w: " + neg1.nextUp().intervalWidth());
         System.out.println("w: " + neg1.nextDown().intervalWidth());
-//        System.out.println("w:" + FACTORY.ubound(ONE, TWO).intervalWidth());
-//        System.out.println("w:" + FACTORY.ubound(ONE, TWO.nextUp()).intervalWidth());
-//        System.out.println("w:" + FACTORY.ubound(ONE.nextDown(), TWO).intervalWidth());
-//        System.out.println("w:" + FACTORY.ubound(ONE.nextDown(), TWO.nextUp()).intervalWidth());
+        System.out.println("w: " + POSITIVE_INFINITY.intervalWidth());
+        System.out.println("w: " + NEGATIVE_INFINITY.intervalWidth());
+//        System.out.println("w:" + Ubound.create(ONE, TWO).intervalWidth());
+//        System.out.println("w:" + Ubound.create(ONE, TWO.nextUp()).intervalWidth());
+//        System.out.println("w:" + Ubound.create(ONE.nextDown(), TWO).intervalWidth());
+//        System.out.println("w:" + Ubound.create(ONE.nextDown(), TWO.nextUp()).intervalWidth());
     }
 }

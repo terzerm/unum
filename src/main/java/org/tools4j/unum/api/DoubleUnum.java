@@ -39,6 +39,11 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
     public static final DoubleUnum QNAN  = new DoubleUnum(Doubles.QNAN);
     public static final DoubleUnum SNAN  = new DoubleUnum(Doubles.SNAN);
 
+    public static final Ubound<DoubleUnum> UBOUND_ZERO = Ubound.create(ZERO);
+    public static final Ubound<DoubleUnum> UBOUND_ONE = Ubound.create(ONE);
+    public static final Ubound<DoubleUnum> UBOUND_QNAN = Ubound.create(QNAN);
+    public static final Ubound<DoubleUnum> UBOUND_SNAN = Ubound.create(SNAN);
+
     public static final Factory<DoubleUnum> FACTORY = new Factory<DoubleUnum>() {
         @Override
         public DoubleUnum qNaN() {
@@ -61,6 +66,24 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
         }
     };
 
+    public static final Factory<Ubound<DoubleUnum>> UBOUND_FACTORY = new Factory<Ubound<DoubleUnum>>() {
+        @Override
+        public Ubound<DoubleUnum> qNaN() {
+            return UBOUND_QNAN;
+        }
+        @Override
+        public Ubound<DoubleUnum> sNaN() {
+            return UBOUND_SNAN;
+        }
+        @Override
+        public Ubound<DoubleUnum> zero() {
+            return UBOUND_ZERO;
+        }
+        @Override
+        public Ubound<DoubleUnum> one() {
+            return UBOUND_ONE;
+        }
+    };
     public static final DoubleUnum signedNaN(final double sign) {
         return isSignNegative(sign) ? SNAN : QNAN;
     }
@@ -109,6 +132,11 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
     @Override
     public Factory<DoubleUnum> getFactory() {
         return FACTORY;
+    }
+
+    @Override
+    public Factory<Ubound<DoubleUnum>> getUboundFactory() {
+        return UBOUND_FACTORY;
     }
 
     @Override
@@ -253,7 +281,7 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
 
     public static double intervalWidth(final double value) {
         if (isExact(value)) {
-            return 0.0;
+            return Double.isFinite(value) ? 0.0 : Double.POSITIVE_INFINITY;
         }
         if (Double.isNaN(value)) {
             return Doubles.signedNaN(value);

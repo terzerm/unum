@@ -112,7 +112,7 @@ public interface Ubound<U extends Unum<U>> {
     }
     U getLowerBound();
     U getUpperBound();
-    U intervalWidth();
+    Ubound<U> intervalWidth();
     Boundery boundary();
     Overlap overlap(Ubound<U> other);
     boolean isNowhereEqualTo(Ubound<U> other);
@@ -121,8 +121,8 @@ public interface Ubound<U extends Unum<U>> {
     Ubound<U> intersect(Ubound<U> with);
     Ubound<U> span(Ubound<U> with);
 
-    default Factory<U> getFactory() {
-        return getLowerBound().getFactory();
+    default Factory<Ubound<U>> getFactory() {
+        return getLowerBound().getUboundFactory();
     }
     default boolean isEmpty() {
         return getLowerBound().isNaN() || getUpperBound().isNaN();

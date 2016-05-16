@@ -23,14 +23,13 @@
  */
 package org.tools4j.unum.api;
 
-import java.io.Serializable;
-
 /**
  * An universial number.
  */
 public interface Unum<U extends Unum<U>> extends Comparable<U> {
 
     Factory<U> getFactory();
+    Factory<Ubound<U>> getUboundFactory();
     boolean isNaN();
     boolean isInfinite();
     boolean isFinite();
