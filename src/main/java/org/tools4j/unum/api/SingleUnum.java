@@ -32,10 +32,10 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
 
     private static final int UBIT_MASK = 0x00000001;
 
-    public static final SingleUnum ZERO  = new SingleUnum(0.0f);
-    public static final SingleUnum ONE   = new SingleUnum(1.0f);
-    public static final SingleUnum TWO   = new SingleUnum(2.0f);
-    public static final SingleUnum TEN   = new SingleUnum(10.0f);
+    public static final SingleUnum ZERO  = new SingleUnum(0f);
+    public static final SingleUnum ONE   = new SingleUnum(1f);
+    public static final SingleUnum TWO   = new SingleUnum(2f);
+    public static final SingleUnum TEN   = new SingleUnum(10f);
     public static final SingleUnum POSITIVE_INFINITY = new SingleUnum(Float.POSITIVE_INFINITY);
     public static final SingleUnum NEGATIVE_INFINITY = new SingleUnum(Float.NEGATIVE_INFINITY);
     public static final SingleUnum QNAN  = new SingleUnum(Singles.QNAN);
@@ -197,12 +197,12 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
 
     @Override
     public boolean isNegative() {
-        return value < 0;
+        return value < 0f;
     }
 
     @Override
     public boolean isPositive() {
-        return value > 0;
+        return value > 0f;
     }
 
     @Override
@@ -211,12 +211,22 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
     }
 
     public static boolean isSignNegative(final float value) {
-        return value < 0 || Float.floatToRawIntBits(value) < 0;
+        return value < 0f || Float.floatToRawIntBits(value) < 0;
     }
 
     @Override
     public boolean isZero() {
-        return value == 0;
+        return value == 0f;
+    }
+
+    @Override
+    public boolean isNonNegative() {
+        return value >= 0f;
+    }
+
+    @Override
+    public boolean isNonPositive() {
+        return value <= 0f;
     }
 
     public SingleUnum nextUp() {
@@ -252,14 +262,14 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
         if (isExact() | isNaN()) {
             return this;
         }
-        return new SingleUnum(value > 0 ? Math.nextDown(value) : Math.nextUp(value));
+        return new SingleUnum(value > 0f ? Math.nextDown(value) : Math.nextUp(value));
     }
 
     public static float getLowerBound(final float value) {
         if (isExact(value) | Float.isNaN(value)) {
             return value;
         }
-        return value > 0 ? Math.nextDown(value) : Math.nextUp(value);
+        return value > 0f ? Math.nextDown(value) : Math.nextUp(value);
     }
 
     @Override
@@ -267,14 +277,14 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
         if (isExact() | isNaN()) {
             return this;
         }
-        return new SingleUnum(value > 0 ? Math.nextUp(value) : Math.nextDown(value));
+        return new SingleUnum(value > 0f ? Math.nextUp(value) : Math.nextDown(value));
     }
 
     public static float getUpperBound(final float value) {
         if (isExact(value) | Float.isNaN(value)) {
             return value;
         }
-        return value > 0 ? Math.nextUp(value) : Math.nextDown(value);
+        return value > 0f ? Math.nextUp(value) : Math.nextDown(value);
     }
 
     @Override
@@ -285,12 +295,106 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
 
     public static float intervalWidth(final float value) {
         if (isExact(value)) {
-            return Float.isFinite(value) ? 0.0f : Float.POSITIVE_INFINITY;
+            return Float.isFinite(value) ? 0f : Float.POSITIVE_INFINITY;
         }
         if (Float.isNaN(value)) {
             return Singles.signedNaN(value);
         }
         return nextUp(value) - nextDown(value);
+    }
+
+    @Override
+    public SingleUnum add(SingleUnum other) {
+        return SingleUnum.valueOf(add(value, other.value));
+    }
+
+    public static float add(final float a, final float b) {
+        if (isExact(a) & isExact(b)) {
+            final float s = a + b;
+            if (s - a == b & s - b == a) {
+                return s;//also ok if s is inexact
+            }
+            if (Float.isInfinite(s)) {
+                if (Float.isFinite(a) | Float.isFinite(b)) {
+                    return s;
+                }
+                //both infinite
+                return Math.signum(a) == Math.signum(b) ? s : Singles.QNAN;
+            }
+            if (isExact(s)) {
+                if (s - a <= b & s - b <= a) return nextUp(s);
+                if (s - a >= b & s - b >= a) return nextDown(s);
+                //FIXME is this possible?
+                throw new InternalError();
+            }
+            //result must be between s-ulp and s+ulp, hence we're done
+            return s;
+        }
+        return Singles.QNAN;
+    }
+
+    @Override
+    public SingleUnum subtract(SingleUnum other) {
+        return SingleUnum.valueOf(subtract(value, other.value));
+    }
+
+    public static float subtract(final float a, final float b) {
+        if (isExact(a) & isExact(b)) {
+            final float d = a - b;
+            if (d - a == -b & d + b == a) {
+                return d;//also ok if d is inexact
+            }
+            if (Float.isInfinite(d)) {
+                if (Float.isFinite(a) | Float.isFinite(b)) {
+                    return d;
+                }
+                //both infinite
+                return Math.signum(a) != Math.signum(b) ? d : Singles.QNAN;
+            }
+            if (isExact(d)) {
+                if (d - a <= -b & d + b <= a) return nextUp(d);
+                if (d - a >= -b & d + b >= a) return nextDown(d);
+                //FIXME is this possible?
+                throw new InternalError();
+            }
+            //result must be between s-ulp and s+ulp, hence we're done
+            return d;
+        }
+        return Singles.QNAN;
+    }
+
+    @Override
+    public SingleUnum multiply(SingleUnum other) {
+        return SingleUnum.valueOf(multiply(value, other.value));
+    }
+
+    public static float multiply(final float a, final float b) {
+        if (isExact(a) & isExact(b)) {
+            if (a == 0f | b == 0f) {
+                return 0f;
+            }
+            final float p = a * b;
+            if (p / a == b & p / b == a) {
+                return p;//also ok if d is inexact
+            }
+            if (Float.isInfinite(p)) {
+                return p;
+            }
+            if (isExact(p)) {
+                if (p / a <= b & p / b <= a) return nextUp(p);
+                if (p / a >= b & p / b >= a) return nextDown(p);
+                //FIXME is this possible?
+                throw new InternalError();
+            }
+            //result must be between s-ulp and s+ulp, hence we're done
+            return p;
+        }
+        return Singles.QNAN;
+    }
+
+    @Override
+    public SingleUnum divide(SingleUnum other) {
+        throw new RuntimeException("not implemented");//FIXME implement
     }
 
     @Override
@@ -381,7 +485,7 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
         if (Float.isNaN(value)) {
             return Float.floatToRawIntBits(value) >= 0 ? "qNaN" : "sNaN";
         }
-        if (value >= 0) {
+        if (value >= 0f) {
             return "(" + exact(value) + ", " + nextUp(value) + ")";
         } else {
             return "(" + nextDown(value) + ", " + exact(value) + ")";
@@ -404,6 +508,18 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
         System.out.println("*** valueOf/nextDown");
         for (int i = -10; i < 10; i++) {
             System.out.println(SingleUnum.valueOf(Math.nextDown((float)i)));
+        }
+        System.out.println("*** a + a");
+        for (int i = -10; i < 10; i++) {
+            System.out.println(SingleUnum.valueOf(i).add(SingleUnum.valueOf(i)));
+            final float f1 = Math.nextDown(i);
+            System.out.println(SingleUnum.valueOf(f1) + " + " + i + " = " + SingleUnum.valueOf(f1).add(SingleUnum.valueOf(i)));
+            final float f2 = Math.nextDown(Math.nextDown(i));
+            System.out.println(SingleUnum.valueOf(f2) + " + " + i + " = " + SingleUnum.valueOf(f2).add(SingleUnum.valueOf(i)));
+            System.out.println(SingleUnum.valueOf(f2) + "*2 = " + SingleUnum.valueOf(f2).add(SingleUnum.valueOf(f2)));
+        }
+        System.out.println("*** a + a");
+        for (int i = -10; i < 10; i++) {
         }
         System.out.println("*** specials");
         System.out.println(+0.0);
@@ -436,9 +552,9 @@ public class SingleUnum extends AbstractUnum<SingleUnum> implements Serializable
         System.out.println("w: " + neg1.nextDown().intervalWidth());
         System.out.println("w: " + POSITIVE_INFINITY.intervalWidth());
         System.out.println("w: " + NEGATIVE_INFINITY.intervalWidth());
-//        System.out.println("w:" + Ubound.create(ONE, TWO).intervalWidth());
-//        System.out.println("w:" + Ubound.create(ONE, TWO.nextUp()).intervalWidth());
-//        System.out.println("w:" + Ubound.create(ONE.nextDown(), TWO).intervalWidth());
-//        System.out.println("w:" + Ubound.create(ONE.nextDown(), TWO.nextUp()).intervalWidth());
+//        System.out.println("w:" + Ubound.create(ONE, TWO).width());
+//        System.out.println("w:" + Ubound.create(ONE, TWO.nextUp()).width());
+//        System.out.println("w:" + Ubound.create(ONE.nextDown(), TWO).width());
+//        System.out.println("w:" + Ubound.create(ONE.nextDown(), TWO.nextUp()).width());
     }
 }

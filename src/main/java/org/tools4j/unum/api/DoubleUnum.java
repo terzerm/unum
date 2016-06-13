@@ -194,12 +194,12 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
 
     @Override
     public boolean isNegative() {
-        return value < 0;
+        return value < 0.0;
     }
 
     @Override
     public boolean isPositive() {
-        return value > 0;
+        return value > 0.0;
     }
 
     @Override
@@ -208,12 +208,22 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
     }
 
     public static boolean isSignNegative(final double value) {
-        return value < 0 || Double.doubleToRawLongBits(value) < 0;
+        return value < 0.0 || Double.doubleToRawLongBits(value) < 0;
     }
 
     @Override
     public boolean isZero() {
-        return value == 0;
+        return value == 0.0;
+    }
+
+    @Override
+    public boolean isNonNegative() {
+        return value >= 0.0;
+    }
+
+    @Override
+    public boolean isNonPositive() {
+        return value <= 0.0;
     }
 
     public DoubleUnum nextUp() {
@@ -248,14 +258,14 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
         if (isExact() | isNaN()) {
             return this;
         }
-        return new DoubleUnum(value > 0 ? Math.nextDown(value) : Math.nextUp(value));
+        return new DoubleUnum(value > 0.0 ? Math.nextDown(value) : Math.nextUp(value));
     }
 
     public static double getLowerBound(final double value) {
         if (isExact(value) | Double.isNaN(value)) {
             return value;
         }
-        return value > 0 ? Math.nextDown(value) : Math.nextUp(value);
+        return value > 0.0 ? Math.nextDown(value) : Math.nextUp(value);
     }
 
     @Override
@@ -263,14 +273,14 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
         if (isExact() | isNaN()) {
             return this;
         }
-        return new DoubleUnum(value > 0 ? Math.nextUp(value) : Math.nextDown(value));
+        return new DoubleUnum(value > 0.0 ? Math.nextUp(value) : Math.nextDown(value));
     }
 
     public static double getUpperBound(final double value) {
-        if (value < 0 | isExact(value) | Double.isNaN(value)) {
+        if (value < 0.0 | isExact(value) | Double.isNaN(value)) {
             return value;
         }
-        return value > 0 ? Math.nextUp(value) : Math.nextDown(value);
+        return value > 0.0 ? Math.nextUp(value) : Math.nextDown(value);
     }
 
     @Override
@@ -287,6 +297,26 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
             return Doubles.signedNaN(value);
         }
         return nextUp(value) - nextDown(value);
+    }
+
+    @Override
+    public DoubleUnum add(final DoubleUnum other) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public DoubleUnum subtract(final DoubleUnum other) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public DoubleUnum multiply(final DoubleUnum other) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public DoubleUnum divide(final DoubleUnum other) {
+        throw new RuntimeException("not implemented");
     }
 
     @Override
@@ -347,7 +377,7 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
 
     @Override
     public DoubleUnum abs() {
-        return value >= 0 ? this : value < 0 ? negate() : this /*NaN*/;
+        return value >= 0.0 ? this : value < 0.0 ? negate() : this /*NaN*/;
     }
 
     @Override
@@ -377,7 +407,7 @@ public class DoubleUnum extends AbstractUnum<DoubleUnum> implements Serializable
         if (Double.isNaN(value)) {
             return Double.doubleToRawLongBits(value) >= 0 ? "qNaN" : "sNaN";
         }
-        if (value >= 0) {
+        if (value >= 0.0) {
             return "(" + exact(value) + ", " + nextUp(value) + ")";
         } else {
             return "(" + nextDown(value) + ", " + exact(value) + ")";

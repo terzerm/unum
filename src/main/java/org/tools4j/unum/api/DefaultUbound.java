@@ -44,20 +44,20 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
         return upper;
     }
 
-    public final Ubound<U> intervalWidth() {
+    public final Ubound<U> width() {
         if (lower.equals(upper)) {
             return Ubound.create(lower.intervalWidth());
         }
         throw new RuntimeException("not implemented");//FIXME
     }
 
-    public final Boundery boundary() {
+    public final Boundary boundary() {
         return isLowerClosed() ?
-                (isUpperClosed() ? Boundery.CLOSED_CLOSED : Boundery.CLOSED_OPEN) :
-                (isUpperClosed() ? Boundery.OPEN_CLOSED : Boundery.OPEN_OPEN);
+                (isUpperClosed() ? Boundary.CLOSED_CLOSED : Boundary.CLOSED_OPEN) :
+                (isUpperClosed() ? Boundary.OPEN_CLOSED : Boundary.OPEN_OPEN);
     }
     public final Overlap overlap(final Ubound<U> other) {
-        if (isEmpty() || other.isEmpty()) {
+        if (isNaN() || other.isNaN()) {
             return Overlap.EMPTY;
         }
         if (this == other) {
@@ -86,7 +86,7 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
         return Overlap.OVERLAPPING;
     }
     public final boolean isNowhereEqualTo(final Ubound<U> other) {
-        if (isEmpty() || other.isEmpty()) {
+        if (isNaN() || other.isNaN()) {
             return true;
         }
         if (this == other) {
@@ -101,7 +101,7 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
         return !isNowhereEqualTo(other);
     }
     public final boolean isEverywhereEqualTo(final Ubound<U> other) {
-        if (isEmpty() || other.isEmpty()) {
+        if (isNaN() || other.isNaN()) {
             return false;
         }
         if (this == other) {
@@ -110,10 +110,10 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
         return getLowerBound().equals(other.getLowerBound()) && getUpperBound().equals(other.getUpperBound());
     }
     public final Ubound<U> intersect(final Ubound<U> with) {
-        if (this == with || isEmpty()) {
+        if (this == with || isNaN()) {
             return this;
         }
-        if (with.isEmpty()) {
+        if (with.isNaN()) {
             return with;
         }
         final U minUpper = getUpperBound().compareTo(with.getUpperBound()) <= 0 ? getUpperBound() : with.getUpperBound();
@@ -129,10 +129,10 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
         if (this == with) {
             return this;
         }
-        if (isEmpty()) {
+        if (isNaN()) {
             return with;
         }
-        if (with.isEmpty()) {
+        if (with.isNaN()) {
             return this;
         }
         final U minLower = getLowerBound().compareTo(with.getLowerBound()) <= 0 ? getLowerBound() : with.getLowerBound();
@@ -157,7 +157,7 @@ public final class DefaultUbound<U extends Unum<U>> implements Ubound<U> {
 
     @Override
     public String toString() {
-        if (isEmpty()) {
+        if (isNaN()) {
             return "(qNaN)";
         }
         final StringBuilder sb = new StringBuilder();

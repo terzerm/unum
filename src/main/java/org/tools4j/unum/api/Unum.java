@@ -37,6 +37,8 @@ public interface Unum<U extends Unum<U>> extends Comparable<U> {
     boolean isInexact();
     boolean isNegative();
     boolean isPositive();
+    boolean isNonNegative();
+    boolean isNonPositive();
     boolean isSignNegative();
     boolean isZero();
 
@@ -45,6 +47,11 @@ public interface Unum<U extends Unum<U>> extends Comparable<U> {
     U nextDown();
     U nextUp();
     U intervalWidth();
+
+    U add(U other);
+    U subtract(U other);
+    U multiply(U other);
+    U divide(U other);
 
     float floatValue();
     double doubleValue();

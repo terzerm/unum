@@ -29,7 +29,7 @@ package org.tools4j.unum.api;
  * respectively.
  */
 public interface Ubound<U extends Unum<U>> {
-    enum Boundery {
+    enum Boundary {
         /** An closed/closed interval such as [2, 3] which includes both endpoints 2 and 3.*/
         CLOSED_CLOSED,
         /** An open/open interval such as (2, 3) which includes neither of the endpoints of 2 or 3.*/
@@ -112,19 +112,21 @@ public interface Ubound<U extends Unum<U>> {
     }
     U getLowerBound();
     U getUpperBound();
-    Ubound<U> intervalWidth();
-    Boundery boundary();
+    Ubound<U> width();
+    Boundary boundary();
     Overlap overlap(Ubound<U> other);
     boolean isNowhereEqualTo(Ubound<U> other);
     boolean isSomewhereEqualTo(Ubound<U> other);
     boolean isEverywhereEqualTo(Ubound<U> other);
     Ubound<U> intersect(Ubound<U> with);
     Ubound<U> span(Ubound<U> with);
+//    Ubound<U> add(Ubound<U> summand);
+//    Ubound<U> subtract(Ubound<U> summand);
 
     default Factory<Ubound<U>> getFactory() {
         return getLowerBound().getUboundFactory();
     }
-    default boolean isEmpty() {
+    default boolean isNaN() {
         return getLowerBound().isNaN() || getUpperBound().isNaN();
     }
     default boolean isSinglePoint() {
@@ -147,6 +149,40 @@ public interface Ubound<U extends Unum<U>> {
     }
     default boolean isClosed() {
         return isLowerClosed() && isUpperClosed();
+    }
+
+    default boolean isLessThan(final Ubound<U> other) {
+        if (isNaN()) return false;
+        final int cmp = getUpperBound().compareTo(other.getLowerBound());
+        return cmp < 0 || (cmp == 0 && (isUpperOpen() | other.isLowerOpen()));
+    }
+    default boolean isLessThanOrEqualTo(final Ubound<U> other) {
+        if (isNaN()) return false;
+        return getUpperBound().compareTo(other.getLowerBound()) <= 0;
+    }
+    default boolean isGreaterThan(final Ubound<U> other) {
+        if (isNaN()) return false;
+        final int cmp = getLowerBound().compareTo(other.getUpperBound());
+        return cmp > 0 || (cmp == 0 && (isLowerOpen() | other.isUpperOpen()));
+    }
+    default boolean isGreaterThanOrEqualTo(final Ubound<U> other) {
+        if (isNaN()) return false;
+        return getLowerBound().compareTo(other.getUpperBound()) >= 0;
+    }
+    default boolean isNegative() {
+        return getUpperBound().isNegative() || (getUpperBound().isZero() & isUpperOpen());
+    }
+    default boolean isPositive() {
+        return getLowerBound().isPositive() || (getLowerBound().isZero() & isLowerOpen());
+    }
+    default boolean isZero() {
+        return getLowerBound().isZero() & getUpperBound().isZero();
+    }
+    default boolean isNonNegative() {
+        return getLowerBound().isNonNegative();
+    }
+    default boolean isNonPositive() {
+        return getUpperBound().isNonPositive();
     }
 
     static <U extends Unum<U>> Ubound<U> create(final U unum) {

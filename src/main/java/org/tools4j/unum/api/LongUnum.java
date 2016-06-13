@@ -132,6 +132,16 @@ public class LongUnum extends AbstractUnum<LongUnum> implements Serializable {
     }
 
     @Override
+    public boolean isNonNegative() {
+        return (sign > 0 & !isNaN()) | (exponent == 0 & fraction == 0);
+    }
+
+    @Override
+    public boolean isNonPositive() {
+        return (sign < 0 & !isNaN()) | (exponent == 0 & fraction == 0);
+    }
+
+    @Override
     public boolean isExact() {
         return ubit == UBIT_EXACT;
     }
@@ -262,6 +272,26 @@ public class LongUnum extends AbstractUnum<LongUnum> implements Serializable {
 
     @Override
     public LongUnum max(LongUnum other) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public LongUnum add(LongUnum other) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public LongUnum subtract(LongUnum other) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public LongUnum multiply(LongUnum other) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public LongUnum divide(LongUnum other) {
         throw new RuntimeException("not implemented");
     }
 
